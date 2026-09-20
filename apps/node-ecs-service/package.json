@@ -1,0 +1,16 @@
+{
+  "name": "ecs-demo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Tiny Express service used to learn Docker -> ECR -> ECS/Fargate CI/CD",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2"
+  },
+  "devDependencies": {
+    "jest": "^30.5.1"
+  }
+}

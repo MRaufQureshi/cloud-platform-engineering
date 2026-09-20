@@ -1,0 +1,20 @@
+# -- Stage 1
+# AS deps = name this stage
+FROM node:22-slim AS deps
+WORKDIR /app
+COPY package*.json ./
+
+# NPM is installed here
+RUN npm ci --omit=dev
+
+# -- Stage 2
+FROM node:22-slim
+WORKDIR /app
+# Reach INTO stage 1 to pick node_module folder and paste it here
+COPY --from=deps /app/node_modules ./node_modules
+
+COPY . .
+EXPOSE 3000
+ENV NODE_ENV=production
+USER node
+CMD ["node", "server.js"]
