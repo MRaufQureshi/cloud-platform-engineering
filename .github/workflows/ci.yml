@@ -28,6 +28,6 @@ jobs:
         working-directory : apps/node-ecs-service
 
       - name: Build image
-        run: docker build -f Dockerfile.multi -t myapp:ci
-        working-directory : apps/node-ecs-servic
+        run: docker build -f Dockerfile.multi -t myapp:ci .
+        working-directory : apps/node-ecs-service
       
