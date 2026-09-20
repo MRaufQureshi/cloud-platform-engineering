@@ -1,0 +1,24 @@
+# --- Terraform 
+# Provider binaries. in .GB in terraform/ folder. Never commit.
+**/.terraform/*
+
+# State files: may contain secrets. Belongs in S3, never in git.
+*.tfstate
+*.tfstate.*
+crash.log
+
+# Variable files often hold real values
+*.tfvars
+!*.tfvars.example
+
+# NOTE: .terraform.lock.hcl is NOT ignored — it pins provider versions and
+# SHOULD be committed, same reasoning as package-lock.json.
+
+# --- Node 
+node_modules/
+npm-debug.log*
+
+# --- Local / generated
+*.env
+!*.env.example
+.DS_Store
