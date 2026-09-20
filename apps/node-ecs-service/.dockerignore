@@ -1,0 +1,8 @@
+node_modules
+.env
+.git
+Dockerfile 
+.dockerignore
+npm-debug.log
+.DS_Store          # macOS junk, never belongs in an image
+*.md               # READMEs don't need to ship inside the image
