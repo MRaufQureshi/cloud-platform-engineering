@@ -2,9 +2,6 @@ name: CI
 
 on:
   pull_request:
-    paths:
-      - 'apps/node-ecs-service/**'
-      - '.github/workflows/ci.yml'
 
 permissions:
   contents: read
