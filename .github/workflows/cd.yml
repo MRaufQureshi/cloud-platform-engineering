@@ -15,6 +15,10 @@ permissions:
 env:
   AWS_REGION: us-east-1
   ECR_REPOSITORY: myapp
+  ECS_TASK_FAMILY: myapp
+  ECS_SERVICE: myapp-service
+  ECS_CLUSTER: myapp-cluster
+  CONTAINER_NAME: myapp
 
 concurrency:                # two deploys must never run at once
   group: deploy-main         # runs sharing this name are serialised
@@ -36,7 +40,7 @@ jobs:
             "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=sts.amazonaws.com" | jq -r .value)
           echo "$TOKEN" | cut -d. -f2 | base64 -d 2>/dev/null | jq '{sub, aud, repository, ref}'
 
-      # ── Get AWS credentials via OIDC ────────────────────────────────────
+      # ── Get AWS credentials via OIDC 
       # No stored secrets. GitHub signs a token saying "I am this repo, this
       # branch"; AWS checks it against the role's trust policy and returns
       # credentials valid ~1 hour.
@@ -46,14 +50,14 @@ jobs:
           role-to-assume: ${{ vars.AWS_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
 
-      # ── Log docker in to ECR ────────────────────────────────────────────
+      # ── Log docker in to ECR 
       # Same as `aws ecr get-login-password | docker login`.
       # id: ecr  lets a later step read this step's outputs.
       - name: Log in to Amazon ECR
         id: ecr                                 # Step name "ecr"
         uses: aws-actions/amazon-ecr-login@v2   # The action sets an output called "registry"
 
-      # ── Build and push ──────────────────────────────────────────────────
+      # ── Build and push
       - name: Build and push image
         working-directory: apps/node-ecs-service
         env:
@@ -63,3 +67,55 @@ jobs:
           docker build -f Dockerfile.multi -t "$REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" .
           docker push "$REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
           echo "pushed $REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+
+      # ── 1. Fetch the CURRENT task definition
+      # We don't keep a task-definition.json in the repo. Instead we read what's
+      # actually deployed, change ONE field (the image), and register that as a
+      # new revision. Everything else — CPU, memory, ports, log config, roles —
+      # is preserved exactly as it is in AWS.
+      #
+      # describe-task-definition returns read-only fields that register-task-
+      # definition rejects, so jq strips them. It also drops nulls, because
+      # "taskRoleArn": null is a validation error (We have NO task role).
+      - name: Download current task definition
+        run: |
+          aws ecs describe-task-definition \
+            --task-definition "$ECS_TASK_FAMILY" \
+            --query 'taskDefinition' \
+          | jq 'del(.taskDefinitionArn, .revision, .status, .requiresAttributes,
+                    .compatibilities, .registeredAt, .registeredBy)
+                | with_entries(select(.value != null))' \
+          > task-definition.json
+          cat task-definition.json
+
+      # ── 2. Swap in the new image
+      # "Render" = read that JSON, replace the image field for the named
+      # container, write a new JSON file. 
+      # Note: Nothing is sent to AWS yet (still on Git VM).
+      - name: Render task definition with new image
+        id: render
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: task-definition.json
+          container-name: ${{ env.CONTAINER_NAME }}
+          image: ${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
+
+      # ── 3. Register it and roll it out
+      # This does three things: registers the rendered JSON as a NEW task
+      # definition revision, points the service at it, and blocks until the
+      # rollout is actually healthy.
+      - name: Deploy to Amazon ECS
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
+        with:
+          task-definition: ${{ steps.render.outputs.task-definition }}
+          service: ${{ env.ECS_SERVICE }}
+          cluster: ${{ env.ECS_CLUSTER }}
+          wait-for-service-stability: true
+
+      # ── 4. Prove
+      - name: Verify
+        run: |
+          DNS=$(aws elbv2 describe-load-balancers --names myapp-alb \
+                  --query 'LoadBalancers[0].DNSName' --output text)
+          echo "hitting http://$DNS"
+          curl -fsS "http://$DNS"
