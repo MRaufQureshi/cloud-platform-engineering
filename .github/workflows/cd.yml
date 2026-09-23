@@ -1,0 +1,59 @@
+name: CD
+
+on:
+  push:
+    branches: [main] # when something merges on main then deploy
+
+  workflow_dispatch: # manual "Run workflow" button
+  pull_request:
+    types: [labeled] # to trigger over PR, a label needs to be added
+
+permissions:
+  id-token: write # ask GitHub for a signed OIDC token, without it: "Credentials could not be loaded"
+  contents: read
+
+env:
+  AWS_REGION: us-east-1
+  ECR_REPOSITORY: myapp
+
+concurrency:                # two deploys must never run at once
+  group: deploy-main         # runs sharing this name are serialised
+  cancel-in-progress: false  # queue them; don't kill a deploy halfway through
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    # Condition: Only run for the label we care about. Any OTHER trigger (push, dispatch)
+    # passes this check because github.event_name isn't 'pull_request'.
+    if: github.event_name != 'pull_request' || github.event.label.name == 'deploy-to-dev'
+    steps:
+      - uses: actions/checkout@v4
+
+      # ── Get AWS credentials via OIDC ────────────────────────────────────
+      # No stored secrets. GitHub signs a token saying "I am this repo, this
+      # branch"; AWS checks it against the role's trust policy and returns
+      # credentials valid ~1 hour.
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::891105708394:role/github-actions-ecs-deploy
+          aws-region: ${{ env.AWS_REGION }}
+
+      # ── Log docker in to ECR ────────────────────────────────────────────
+      # Same as `aws ecr get-login-password | docker login`.
+      # id: ecr  lets a later step read this step's outputs.
+      - name: Log in to Amazon ECR
+        id: ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      # ── Build and push ──────────────────────────────────────────────────
+      - name: Build and push image
+        working-directory: apps/node-ecs-service
+        env:
+          REGISTRY: ${{ steps.ecr.outputs.registry }}   # 891105708394.dkr.ecr.us-east-1...
+          IMAGE_TAG: ${{ github.sha }}                  # the commit hash — immutable
+        run: |
+          docker build -f Dockerfile.multi -t "$REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" .
+          docker push "$REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+          echo "pushed $REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
