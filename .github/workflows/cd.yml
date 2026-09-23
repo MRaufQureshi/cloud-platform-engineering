@@ -26,7 +26,7 @@ jobs:
 
     # Condition: Only run for the label we care about. Any OTHER trigger (push, dispatch)
     # passes this check because github.event_name isn't 'pull_request'.
-    if: github.event_name != 'pull_request' || github.event.label.name == 'deploy-to-dev'
+    if: github.event_name != 'pull_request' || github.event.label.name == 'deploy'
     steps:
       - uses: actions/checkout@v4
 
@@ -37,21 +37,21 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::891105708394:role/github-actions-ecs-deploy
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
 
       # ── Log docker in to ECR ────────────────────────────────────────────
       # Same as `aws ecr get-login-password | docker login`.
       # id: ecr  lets a later step read this step's outputs.
       - name: Log in to Amazon ECR
-        id: ecr
-        uses: aws-actions/amazon-ecr-login@v2
+        id: ecr                                 # Step name "ecr"
+        uses: aws-actions/amazon-ecr-login@v2   # The action sets an output called "registry"
 
       # ── Build and push ──────────────────────────────────────────────────
       - name: Build and push image
         working-directory: apps/node-ecs-service
         env:
-          REGISTRY: ${{ steps.ecr.outputs.registry }}   # 891105708394.dkr.ecr.us-east-1...
+          REGISTRY: ${{ steps.ecr.outputs.registry }}   # Read it back by step: id89xxx.dkr.ecr.us-xxx-1...
           IMAGE_TAG: ${{ github.sha }}                  # the commit hash — immutable
         run: |
           docker build -f Dockerfile.multi -t "$REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" .
