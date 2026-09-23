@@ -20,7 +20,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Bump this to 'v2', 'v3', ... to watch a deploy roll through the pipeline.
-const APP_VERSION = 'v4-BROKEN';
+const APP_VERSION = 'v3';
 
 // ---------------------------------------------------------------------------
 // /health — the ALB target group will poll THIS path every 30 seconds.
@@ -31,7 +31,7 @@ const APP_VERSION = 'v4-BROKEN';
 // takes down every task at once.
 // ---------------------------------------------------------------------------
 app.get('/health', (req, res) => {
-  res.status(500).json({ status: 'broken on purpose' });
+  res.status(200).json({ status: 'ok' });
 });
 
 // ---------------------------------------------------------------------------
