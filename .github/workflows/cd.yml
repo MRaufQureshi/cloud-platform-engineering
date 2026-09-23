@@ -35,6 +35,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # ── Get AWS credentials via OIDC 
+      # No stored secrets. GitHub signs a token saying "I am this repo, this
+      # branch"; AWS checks it against the role's trust policy and returns
+      # credentials valid ~1 hour.
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
       # ── Log docker in to ECR 
       # Same as `aws ecr get-login-password | docker login`.
       # id: ecr  lets a later step read this step's outputs.
