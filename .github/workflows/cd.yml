@@ -9,8 +9,9 @@ on:
     types: [labeled] # to trigger over PR, a label needs to be added
 
 permissions:
-  id-token: write # ask GitHub for a signed OIDC token, without it: "Credentials could not be loaded"
+  id-token: write           # ask GitHub for a signed OIDC token, without it: "Credentials could not be loaded"
   contents: read
+  pull-requests: write      # lets the job post a comment
 
 env:
   AWS_REGION: us-east-1
@@ -117,5 +118,16 @@ jobs:
         run: |
           DNS=$(aws elbv2 describe-load-balancers --names myapp-alb \
                   --query 'LoadBalancers[0].DNSName' --output text)
-          echo "hitting http://$DNS"
+          echo "ALB_DNS=$DNS" >> "$GITHUB_ENV"     # share it with later steps
           curl -fsS "http://$DNS"
+
+      - name: Comment the deployed URL on the PR
+        if: github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh pr comment ${{ github.event.pull_request.number }} --body \
+            "🚀 Deployed \`${{ github.sha }}\`
+            
+            http://${ALB_DNS}"
+
