@@ -20,7 +20,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Bump this to 'v2', 'v3', ... to watch a deploy roll through the pipeline.
-const APP_VERSION = 'v3';
+const APP_VERSION = 'v4';
 
 // ---------------------------------------------------------------------------
 // /health — the ALB target group will poll THIS path every 30 seconds.
