@@ -78,9 +78,9 @@ resource "aws_ecs_task_definition" "main" {
         awslogs-region        = var.region
         awslogs-stream-prefix = "ecs"
         # false because Terraform already made the group. true would call
-        # logs:CreateLogGroup on every task start, which the execution role
-        # cannot do — the Phase 4 failure.
-        awslogs-create-group = "false"
+        # logs:CreateLogGroup on every task start, which the execution role cannot do
+        
+        # awslogs-create-group = "false"
       }
     }
   }])
