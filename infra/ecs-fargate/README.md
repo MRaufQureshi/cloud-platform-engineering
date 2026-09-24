@@ -18,9 +18,21 @@ Docker running.
 cd infra/ecs-fargate
 ```
 
-### 1. Point the stack at your AWS account
+### 1. Do the one-time IAM setup
 
-Two values to change. Both are in this directory.
+Terraform builds everything in this stack. It does **not** build the identity
+GitHub Actions uses to deploy into it — that has to exist first, and outlive it.
+
+See **[PREREQUISITES.md](../../PREREQUISITES.md)**: the OIDC identity provider,
+the `github-actions-ecs-deploy` role, and the `AWS_ROLE_ARN` repo variable.
+About ten minutes, once per account.
+
+You can skip this and still `terraform apply` — the platform will build and
+serve traffic fine. Only the *deploy pipeline* needs it.
+
+### 2. Point the stack at your AWS account
+
+Two values to change, both in this directory.
 
 **`variables.tf`** — your 12-digit AWS account ID:
 
@@ -57,7 +69,7 @@ AWS credentials by hand is easy to get wrong, and the failure mode without it �
 silently building a second copy of production in the wrong account — is
 expensive and confusing.
 
-### 2. Initialise
+### 3. Initialise
 
 ```bash
 terraform init -backend-config=backend.personal.hcl
@@ -80,17 +92,17 @@ The value is read once and cached in `.terraform/`. `plan`, `apply` and
 `destroy` need no flag afterwards. Delete `.terraform/` or clone fresh and you
 pass it again.
 
-### 3. Build the platform
+### 4. Build the platform
 
 ```bash
 terraform apply
 ```
 
 Type `yes`. Creates all 19 resources. **Finishes with a working load balancer
-and a broken service** — expected, step 5 fixes it. See
+and a broken service** — expected, steps 5 and 6 fix it. See
 [Why the first apply needs a bootstrap](#why-the-first-apply-needs-a-bootstrap).
 
-### 4. Push the first image
+### 5. Push the first image
 
 ```bash
 ECR=$(terraform output -raw ecr_repository_url)
@@ -109,7 +121,7 @@ builds arm64 by default — without it the task starts and dies with
 `exec format error`. `--provenance=false` stops BuildKit adding attestation
 manifests, which otherwise show up as two extra rows in ECR.
 
-### 5. Start the tasks and wait
+### 6. Start the tasks and wait
 
 ```bash
 aws ecs update-service --cluster myapp-cluster --service myapp-service \
@@ -121,7 +133,7 @@ aws ecs wait services-stable --cluster myapp-cluster --services myapp-service --
 2–4 minutes. `wait` prints nothing until it succeeds — the health check needs two
 consecutive passes 30 seconds apart before a task counts as healthy.
 
-### 6. See it running
+### 7. See it running
 
 ```bash
 terraform output -raw alb_url
@@ -142,7 +154,7 @@ Open that URL in a browser, or look in the console:
 
 Done. 
 
-### 7. THE TEARDOWN
+### 8. THE TEARDOWN
 
 [Teardown is at the bottom - click here](#teardown).
 
@@ -207,8 +219,8 @@ terraform apply
    curl  → 503 Service Temporarily Unavailable   (ALB up, no healthy target)
 ```
 
-The registry and the thing that consumes it are born in the same apply. Steps 4
-and 5 of the quickstart resolve it by hand.
+The registry and the thing that consumes it are born in the same apply. Steps 5
+and 6 of the quickstart resolve it by hand.
 
 Production pipelines avoid it instead — by pointing the first task definition at
 a public placeholder image, or creating the service at `desired_count = 0`, or
