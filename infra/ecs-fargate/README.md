@@ -140,9 +140,11 @@ Open that URL in a browser, or look in the console:
 | **EC2** → Target Groups → `myapp-tg` → Targets | two IPs, both `healthy` |
 | **CloudWatch** → Log groups → `/ecs/myapp` | two log streams |
 
-### 6. THE TEARDOWN
+Done. 
 
-Done. [Teardown is at the bottom - click here](#teardown).
+### 7. THE TEARDOWN
+
+[Teardown is at the bottom - click here](#teardown).
 
 ---
 
