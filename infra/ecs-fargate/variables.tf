@@ -26,6 +26,15 @@ variable "project" {
   default     = "myapp"
 }
 
+# The ECS agent assumes this role to pull the image and write logs.
+# Create it first: see PREREQUISITES.md. Change this only if yours has a
+# different name.
+variable "execution_role_name" {
+  description = "Name of the pre-existing ECS task execution role"
+  type        = string
+  default     = "ecsTaskExecutionRole"
+}
+
 # Networking Variables
 variable "vpc_cidr" {
   description = "How big is your VPC CIDR block? 65536 in total"
