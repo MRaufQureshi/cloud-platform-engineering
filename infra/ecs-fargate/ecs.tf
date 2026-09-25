@@ -22,24 +22,14 @@ resource "aws_cloudwatch_log_group" "main" {
   retention_in_days = var.log_retention_days
 }
 
-# 3. Execution role — used by the ECS AGENT to pull the image and write logs.
-# There is deliberately no task role: the app calls no AWS APIs, so it gets no AWS identity.
-resource "aws_iam_role" "execution" {
-  name = "${var.project}-ecs-execution-role"
-
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [{
-      Effect    = "Allow"
-      Action    = "sts:AssumeRole"
-      Principal = { Service = "ecs-tasks.amazonaws.com" }
-    }]
-  })
-}
-
-resource "aws_iam_role_policy_attachment" "execution" {
-  role       = aws_iam_role.execution.name
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+# 3. Execution role — the identity the ECS AGENT uses to pull the image and
+# write logs. Not your code: there is deliberately no task role, because the app
+# calls no AWS APIs.
+#
+# `data`, not `resource` — this role is a PREREQUISITE, created once per account
+# before this stack ever runs. See PREREQUISITES.md.
+data "aws_iam_role" "execution" {
+  name = var.execution_role_name
 }
 
 # 4. Cluster. On Fargate this is close to nothing — a namespace for services.
@@ -58,7 +48,7 @@ resource "aws_ecs_task_definition" "main" {
 
   cpu                = var.task_cpu
   memory             = var.task_memory
-  execution_role_arn = aws_iam_role.execution.arn
+  execution_role_arn = data.aws_iam_role.execution.arn
 
   # A JSON string, not HCL — jsonencode lets you write HCL and serialises it.
   container_definitions = jsonencode([{
@@ -79,7 +69,7 @@ resource "aws_ecs_task_definition" "main" {
         awslogs-stream-prefix = "ecs"
         # false because Terraform already made the group. true would call
         # logs:CreateLogGroup on every task start, which the execution role cannot do
-        
+
         # awslogs-create-group = "false"
       }
     }
