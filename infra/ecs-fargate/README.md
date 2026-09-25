@@ -6,6 +6,9 @@ ECS Fargate**. 17 resources, no dependency on any other stack in this repo.
 Replaces the imperative `aws-setup.sh` this project started with.
 
 ---
+## Architecture Diagram
+<details>
+[Architecture Diagram](https://github.com/MRaufQureshi/cloud-platform-engineering/pull/7/changes)
 
 ## Quickstart
 
