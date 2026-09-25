@@ -324,7 +324,8 @@ repository matches reality. In that order.
 
 #### WHERE TO LOOK - AWS CONSOLE
 
-ECS > Clusters > myapp-cluster > Services tab > myapp-service
+ECS > Clusters > myapp-cluster > Services tab > Select checkbox "myapp-service"
+Click button "Update"
 Then:
 ```
  Deployment configuration
