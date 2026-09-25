@@ -1,7 +1,7 @@
 # ecs-fargate
 
 Terraform for the platform a containerised Node service runs on: **VPC → ALB →
-ECS Fargate**. 19 resources, no dependency on any other stack in this repo.
+ECS Fargate**. 17 resources, no dependency on any other stack in this repo.
 
 Replaces the imperative `aws-setup.sh` this project started with.
 
@@ -20,15 +20,30 @@ cd infra/ecs-fargate
 
 ### 1. Do the one-time IAM setup
 
-Terraform builds everything in this stack. It does **not** build the identity
-GitHub Actions uses to deploy into it — that has to exist first, and outlive it.
+Terraform builds the platform. It does **not** build the IAM identities — those
+have to exist first.
 
-See **[PREREQUISITES.md](../../PREREQUISITES.md)**: the OIDC identity provider,
-the `github-actions-ecs-deploy` role, and the `AWS_ROLE_ARN` repo variable.
-About ten minutes, once per account.
+See **[PREREQUISITES.md](../../PREREQUISITES.md)**
 
-You can skip this and still `terraform apply` — the platform will build and
-serve traffic fine. Only the *deploy pipeline* needs it.
+| | needed for |
+|---|---|
+| `ecsTaskExecutionRole` | **required to `terraform apply` at all** |
+| GitHub OIDC identity provider | the deploy pipeline only |
+| `github-actions-ecs-deploy` role | the deploy pipeline only |
+| `AWS_ROLE_ARN` repo variable | the deploy pipeline only |
+
+The execution role is the one you cannot skip — `ecs.tf` reads it with a `data`
+block, so a missing role fails at plan time:
+
+```
+Error: no IAM role by that name: ecsTaskExecutionRole
+```
+
+Most accounts already have it; the ECS console creates it the first time anyone
+builds a service. Check with `aws iam get-role --role-name ecsTaskExecutionRole`.
+
+The other three only matter when you want CI to deploy. Without them the
+platform still builds and serves traffic.
 
 ### 2. Point the stack at your AWS account
 
@@ -38,18 +53,17 @@ Two values to change, both in this directory.
 
 ```hcl
 variable "aws_account_id" {
-  default = "891105708394"      # ← replace with YOUR account ID
+  default = "8911XXX08XXX"      # replace with YOUR account ID
 }
 ```
 
 **`backend.personal.hcl`** — an S3 bucket **you own**, for Terraform state:
 
 ```hcl
-bucket = "pantheon-m-org-terraform-state-us-east-1"   # ← replace
+bucket = "Your-S3-Bucket-terraform-state-us-east-1"   # replace
 ```
 
-S3 bucket names are globally unique, so this one cannot be reused. Any
-versioned, encrypted bucket works; `infra/bootstrap/` will create one for you.
+S3 bucket names are globally unique. Any versioned, encrypted bucket works; `infra/bootstrap/` will create one for you.
 
 Then confirm your credentials match what you just set:
 
@@ -61,13 +75,12 @@ The number it prints must equal `aws_account_id`. If they differ, Terraform
 stops before making a single API call:
 
 ```
-Error: AWS Account ID not allowed: 464447071956
+Error: AWS Account ID not allowed: 46XXX707XXXX
 ```
 
 That guard is `allowed_account_ids` in `provider.tf`. It exists because swapping
-AWS credentials by hand is easy to get wrong, and the failure mode without it —
-silently building a second copy of production in the wrong account — is
-expensive and confusing.
+AWS credentials by hand is easy to get wrong, and the failure mode without it -
+silently building a second copy of production in the wrong account.
 
 ### 3. Initialise
 
@@ -79,6 +92,7 @@ Once per clone. Downloads the AWS provider and connects to the state bucket.
 
 Why is the bucket passed as a flag instead of living in `provider.tf`? A
 `backend` block is parsed *before* variables exist, so it cannot use `var.*`.
+
 Hardcoding a bucket name would tie this code to one AWS account. Leaving it out
 and supplying it at init — "partial backend configuration" — keeps the code
 portable:
@@ -98,8 +112,8 @@ pass it again.
 terraform apply
 ```
 
-Type `yes`. Creates all 19 resources. **Finishes with a working load balancer
-and a broken service** — expected, steps 5 and 6 fix it. See
+Type `yes`. Creates all 17 resources. **Finishes with a working load balancer
+and a broken service** - expected, steps 5 and 6 fix it. See
 [Why the first apply needs a bootstrap](#why-the-first-apply-needs-a-bootstrap).
 
 ### 5. Push the first image
@@ -111,13 +125,16 @@ aws ecr get-login-password --region us-east-1 \
   | docker login --username AWS --password-stdin "$ECR"
 
 cd ../../apps/node-ecs-service
+
 docker build -f Dockerfile.multi --platform linux/amd64 --provenance=false -t "$ECR:bootstrap" .
+
 docker push "$ECR:bootstrap"
+
 cd ../../infra/ecs-fargate
 ```
 
 `--platform linux/amd64` because Fargate is x86_64 while an Apple Silicon Mac
-builds arm64 by default — without it the task starts and dies with
+builds arm64 by default - without it the task starts and dies with
 `exec format error`. `--provenance=false` stops BuildKit adding attestation
 manifests, which otherwise show up as two extra rows in ECR.
 
@@ -130,7 +147,7 @@ aws ecs update-service --cluster myapp-cluster --service myapp-service \
 aws ecs wait services-stable --cluster myapp-cluster --services myapp-service --region us-east-1
 ```
 
-2–4 minutes. `wait` prints nothing until it succeeds — the health check needs two
+2–4 minutes. `wait` prints nothing until it succeeds - the health check needs two
 consecutive passes 30 seconds apart before a task counts as healthy.
 
 ### 7. See it running
@@ -304,6 +321,22 @@ aws ecs update-service --cluster myapp-cluster --service myapp-service \
 Seconds, and it stops the bleeding. Then `git revert` the bad commit so the
 repository matches reality. In that order.
 
+
+#### WHERE TO LOOK - AWS CONSOLE
+
+ECS > Clusters > myapp-cluster > Services tab > myapp-service
+Then:
+```
+ Deployment configuration
+  ├─ Task definition
+  │     Family    myapp
+  │     Revision  ▼  ← THE DROPDOWN. pick the older revision, e.g. 5 instead of 7
+  │
+  └─ Force new deployment
+
+  →  Update  (bottom right)
+
+```
 ---
 
 ## Everyday commands
@@ -367,7 +400,7 @@ cd infra/ecs-fargate
 terraform destroy
 ```
 
-Type `yes`. Takes ~3 minutes; the load balancer is the slow part. Removes all 19
+Type `yes`. Takes ~3 minutes; the load balancer is the slow part. Removes all 17
 resources **including the ECR repository and every image in it** (`force_delete`).
 
 Verify nothing is left billing:
@@ -381,8 +414,7 @@ aws ecr describe-repositories  --region us-east-1 --query 'repositories[].reposi
 All three should come back empty.
 
 **Not destroyed, and free:** the S3 state bucket, and ECS task definition
-revisions — AWS keeps those forever at no cost and they are your rollback
-history. Note that revisions registered before a teardown point at images that
+revisions. Note that revisions registered before a teardown point at images that
 no longer exist, so they stop being valid rollback targets once the ECR
 repository is deleted.
 
