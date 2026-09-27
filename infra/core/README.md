@@ -43,7 +43,7 @@ Everything in [PREREQUISITES.md](../../PREREQUISITES.md), plus:
 | | |
 |---|---|
 | **`infra/bootstrap` applied** | this stack stores state in the bucket it creates |
-| **An EC2 key pair named `nfx-key-pair`** | EC2 → Key Pairs → Create. Or change `var.key_pair`. Apply fails without it. |
+| **An EC2 key pair named `your-key-pair`** | EC2 → Key Pairs → Create. Or change `var.key_pair`. Apply fails without it. |
 | **Your public IP** | Terraform prompts for `my_ip`. It is the only thing allowed to SSH in. |
 
 **Region: `us-east-1`.** Hardcoded in the provider, and `var.ami` is a region-specific AMI ID. Everything in this repo assumes `us-east-1` — using another region means changing both.
