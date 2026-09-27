@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BATMAN // Gotham Tactical Terminal</title>
+    <style>
+        :root {
+            --bg-color: #08080a;
+            --card-bg: #101116;
+            --accent-yellow: #f5c518;
+            --accent-blue: #00d2ff;
+            --text-main: #e1e1e6;
+            --text-muted: #7a7c85;
+            --border-color: #20232c;
+            --bat-black: #050507;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.6;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Screen Shake Animation */
+        @keyframes screenShake {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            20% { transform: translate(-8px, 6px) rotate(-1deg); }
+            40% { transform: translate(8px, -6px) rotate(1deg); }
+            60% { transform: translate(-5px, -4px) rotate(0.5deg); }
+            80% { transform: translate(5px, 4px) rotate(-0.5deg); }
+            100% { transform: translate(0, 0) rotate(0deg); }
+        }
+
+        body.shake {
+            animation: screenShake 0.4s ease-in-out;
+        }
+
+        /* CRT Scanline Overlay */
+        body::before {
+            content: " ";
+            position: fixed;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.35) 50%);
+            background-size: 100% 4px;
+            z-index: 1000;
+            pointer-events: none;
+            opacity: 0.6;
+        }
+
+        /* Flash Red Screen Alert */
+        #threat-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(255, 0, 0, 0.15);
+            pointer-events: none;
+            z-index: 900;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        #threat-overlay.active {
+            opacity: 1;
+        }
+
+        header {
+            border-bottom: 1px solid var(--border-color);
+            padding: 1.2rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(8, 8, 10, 0.95);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+
+        .logo {
+            font-weight: 900;
+            font-size: 1.4rem;
+            letter-spacing: 3px;
+            color: var(--accent-yellow);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        nav a {
+            color: var(--text-muted);
+            text-decoration: none;
+            margin-left: 2rem;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            transition: color 0.3s;
+        }
+
+        nav a:hover {
+            color: var(--accent-yellow);
+        }
+
+        .hero {
+            min-height: 65vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 4rem 2rem;
+            background: radial-gradient(circle at center, #181a22 0%, var(--bg-color) 75%);
+            position: relative;
+        }
+
+        .hero h1 {
+            font-size: 3.8rem;
+            letter-spacing: 6px;
+            text-transform: uppercase;
+            margin-bottom: 1rem;
+            text-shadow: 0 0 20px rgba(245, 197, 24, 0.15);
+        }
+
+        .hero p {
+            max-width: 600px;
+            color: var(--text-muted);
+            font-size: 1.05rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .hero-controls {
+            display: flex;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        /* Tactical Button Styling */
+        .btn {
+            background: transparent;
+            border: 2px solid var(--border-color);
+            color: var(--text-main);
+            padding: 0.8rem 2rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            position: relative;
+            overflow: hidden;
+            outline: none;
+        }
+
+        .btn-yellow {
+            border-color: var(--accent-yellow);
+            color: var(--accent-yellow);
+        }
+
+        .btn-yellow:hover {
+            background: var(--accent-yellow);
+            color: var(--bat-black);
+            box-shadow: 0 0 25px rgba(245, 197, 24, 0.5);
+            transform: translateY(-2px);
+        }
+
+        .btn-blue {
+            border-color: var(--accent-blue);
+            color: var(--accent-blue);
+        }
+
+        .btn-blue:hover {
+            background: var(--accent-blue);
+            color: var(--bat-black);
+            box-shadow: 0 0 25px rgba(0, 212, 255, 0.5);
+            transform: translateY(-2px);
+        }
+
+        .btn:active {
+            transform: translateY(1px) scale(0.98);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+        }
+
+        .section-title {
+            font-size: 1.1rem;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            color: var(--accent-yellow);
+            margin-bottom: 2rem;
+            border-left: 3px solid var(--accent-yellow);
+            padding-left: 12px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            padding: 2rem;
+            border-radius: 4px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: transform 0.3s, border-color 0.3s, box-shadow 0.3s;
+        }
+
+        .card:hover {
+            border-color: #383c4a;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+        }
+
+        .card h3 {
+            color: var(--text-main);
+            margin-bottom: 0.3rem;
+            letter-spacing: 1px;
+        }
+
+        .card span.subtitle {
+            color: var(--accent-blue);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: block;
+            margin-bottom: 1rem;
+        }
+
+        .card p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.2rem 0.6rem;
+            font-size: 0.75rem;
+            font-weight: bold;
+            border-radius: 2px;
+            text-transform: uppercase;
+            align-self: flex-start;
+        }
+
+        .status-contained {
+            background: rgba(0, 210, 255, 0.1);
+            color: var(--accent-blue);
+            border: 1px solid var(--accent-blue);
+        }
+
+        .status-at-large {
+            background: rgba(255, 75, 75, 0.1);
+            color: #ff4b4b;
+            border: 1px solid #ff4b4b;
+        }
+
+        /* Flying Batarang Effect */
+        .batarang-projectile {
+            position: fixed;
+            width: 45px;
+            height: 45px;
+            z-index: 9999;
+            pointer-events: none;
+            filter: drop-shadow(0 0 10px rgba(0, 210, 255, 0.8));
+            animation: spinAndFly 0.8s cubic-bezier(0.25, 1, 0.5, 1) FORWARDS;
+        }
+
+        @keyframes spinAndFly {
+            0% {
+                transform: translate(0, 0) rotate(0deg) scale(0.5);
+                opacity: 1;
+            }
+            70% {
+                opacity: 1;
+            }
+            100% {
+                transform: translate(var(--target-x), var(--target-y)) rotate(1440deg) scale(1.2);
+                opacity: 0;
+            }
+        }
+
+        /* Hit Impact Slash/Flash */
+        .batarang-impact {
+            position: fixed;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: radial-gradient(circle, var(--accent-blue) 0%, transparent 70%);
+            z-index: 9998;
+            pointer-events: none;
+            transform: translate(-50%, -50%) scale(0.2);
+            animation: impactPulse 0.3s ease-out forwards;
+        }
+
+        @keyframes impactPulse {
+            0% { transform: translate(-50%, -50%) scale(0.2); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(2); opacity: 0; }
+        }
+
+        /* Bat-Signal Projection Overlay */
+        #signal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: radial-gradient(circle at center, rgba(245, 197, 24, 0.22) 0%, rgba(8, 8, 10, 0.96) 65%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            cursor: pointer;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        #signal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .signal-beam {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transform: scale(0.7);
+            transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        #signal-overlay.active .signal-beam {
+            transform: scale(1);
+        }
+
+        .signal-bat {
+            width: 320px;
+            fill: #000;
+            filter: drop-shadow(0 0 35px var(--accent-yellow));
+            animation: pulseSignal 2.5s infinite alternate ease-in-out;
+        }
+
+        @keyframes pulseSignal {
+            0% { transform: scale(0.96); filter: drop-shadow(0 0 25px var(--accent-yellow)); }
+            100% { transform: scale(1.04); filter: drop-shadow(0 0 50px var(--accent-yellow)); }
+        }
+
+        .signal-text {
+            color: var(--accent-yellow);
+            font-weight: 900;
+            letter-spacing: 6px;
+            margin-top: 2rem;
+            text-transform: uppercase;
+            font-size: 1.2rem;
+            text-shadow: 0 0 10px rgba(245, 197, 24, 0.5);
+        }
+
+        /* Comic Action Text Particle */
+        .comic-pop {
+            position: fixed;
+            font-weight: 900;
+            font-style: italic;
+            font-size: 2rem;
+            color: var(--accent-yellow);
+            text-shadow: 2px 2px 0 #000, -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 0 0 15px var(--accent-yellow);
+            pointer-events: none;
+            z-index: 9999;
+            animation: popAndFade 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        @keyframes popAndFade {
+            0% { transform: translate(-50%, -50%) scale(0.3) rotate(-15deg); opacity: 0; }
+            50% { transform: translate(-50%, -50%) scale(1.3) rotate(5deg); opacity: 1; }
+            100% { transform: translate(-50%, -80px) scale(1) rotate(0deg); opacity: 0; }
+        }
+
+        footer {
+            border-top: 1px solid var(--border-color);
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="threat-overlay"></div>
+
+    <header>
+        <div class="logo">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 14c-2.33 0-4.31-1.46-5.11-3.5h10.22c-.8 2.04-2.78 3.5-5.11 3.5z"/>
+            </svg>
+            WAYNE_NET // TACTICAL
+        </div>
+        <nav>
+            <a href="#arsenal">Arsenal</a>
+            <a href="#rogues">Rogue Gallery</a>
+            <a href="#terminal">Terminal</a>
+        </nav>
+    </header>
+
+    <section class="hero">
+        <h1>I Am The Night</h1>
+        <p>Gotham Tactical Command & Telemetry Engine. Select an action below to engage defense protocols or launch countermeasures.</p>
+        
+        <div class="hero-controls">
+            <button class="btn btn-yellow" onclick="toggleSignal()">Summon Bat-Signal</button>
+            <button class="btn btn-blue" onclick="triggerTacticalScan(event)">Run Tactical Scan</button>
+        </div>
+    </section>
+
+    <main class="container">
+        <div id="arsenal">
+            <h2 class="section-title">Active Equipment Deployment</h2>
+            <div class="grid">
+                <div class="card" id="card-batmobile">
+                    <div>
+                        <h3>Batmobile</h3>
+                        <span class="subtitle">Heavy Armor Vehicle</span>
+                        <p>Features stealth mode, remote guidance, and dual 60mm armor-piercing artillery cannons.</p>
+                    </div>
+                    <button class="btn btn-yellow" onclick="deployVehicle(event, 'BATMOBILE', 'VROOM!')">Deploy Vehicle</button>
+                </div>
+
+                <div class="card" id="card-batwing">
+                    <div>
+                        <h3>Batwing</h3>
+                        <span class="subtitle">Air Support Tactical Jet</span>
+                        <p>VTOL stealth aircraft optimized for aerial reconnaissance and heavy payload strike missions.</p>
+                    </div>
+                    <button class="btn btn-yellow" onclick="deployVehicle(event, 'BATWING', 'WHOOSH!')">Launch Jet</button>
+                </div>
+
+                <div class="card">
+                    <div>
+                        <h3>Grapple Gun</h3>
+                        <span class="subtitle">Rapid Mobility System</span>
+                        <p>High-tensile magnetic line launcher capable of accelerating up skyscraper facades in seconds.</p>
+                    </div>
+                    <button class="btn btn-blue" onclick="throwBatarangAtCard(event, 'THWIP!')">Test Grapple</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="rogues" style="margin-top: 4rem;">
+            <h2 class="section-title">High-Threat Persons of Interest</h2>
+            <div class="grid">
+                <div class="card">
+                    <div>
+                        <h3>The Joker</h3>
+                        <span class="subtitle">Threat Level: Critical</span>
+                        <p>Master of psychological warfare and lethal laughing toxins. Unpredictable chaotic adversary.</p>
+                        <span class="status-badge status-at-large" id="status-joker">At Large</span>
+                    </div>
+                    <button class="btn btn-blue" style="margin-top: 1.5rem;" onclick="subdueRogue(event, 'status-joker', 'Joker', 'POW!')">Neutralize</button>
+                </div>
+
+                <div class="card">
+                    <div>
+                        <h3>Dr. Pamela Isley</h3>
+                        <span class="subtitle">Threat Level: High</span>
+                        <p>Bio-terrorist controlling mutated botanical flora and hypnotic pheromones.</p>
+                        <span class="status-badge status-contained">Arkham Inmate</span>
+                    </div>
+                    <button class="btn btn-blue" style="margin-top: 1.5rem;" onclick="subdueRogue(event, null, 'Poison Ivy', 'BAM!')">Strike Target</button>
+                </div>
+
+                <div class="card">
+                    <div>
+                        <h3>Edward Nygma</h3>
+                        <span class="subtitle">Threat Level: Moderate</span>
+                        <p>Obsessive cyber-criminal utilizing cryptographic traps and automated security breaches.</p>
+                        <span class="status-badge status-contained">Arkham Inmate</span>
+                    </div>
+                    <button class="btn btn-blue" style="margin-top: 1.5rem;" onclick="subdueRogue(event, null, 'Riddler', 'KAPOW!')">Strike Target</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        WAYNE ENTERPRISES // RESTRICTED ACCESS // GOTHAM CITY POLICE DEPT LINK ACTIVE
+    </footer>
+
+    <!-- Bat Signal Overlay -->
+    <div id="signal-overlay" onclick="toggleSignal()">
+        <div class="signal-beam">
+            <svg class="signal-bat" viewBox="0 0 24 24">
+                <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zm0 12.5c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z"/>
+            </svg>
+            <div class="signal-text">The Bat-Signal Is Lit</div>
+        </div>
+    </div>
+
+    <!-- SVG Template for Flying Batarangs -->
+    <template id="batarang-template">
+        <svg class="batarang-projectile" viewBox="0 0 100 100">
+            <path d="M50,35 C55,20 75,10 95,25 C80,35 75,55 90,65 C70,60 60,75 50,90 C40,75 30,60 10,65 C25,55 20,35 5,25 C25,10 45,20 50,35 Z" fill="#00d2ff"/>
+        </svg>
+    </template>
+
+    <script>
+        /* Audio Synthesis Engine (No external sound files needed) */
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playSound(type) {
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+
+            const now = audioCtx.currentTime;
+
+            if (type === 'batarang') {
+                // High-pitched swoosh sound
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(800, now);
+                osc.frequency.exponentialRampToValueAtTime(150, now + 0.25);
+                gain.gain.setValueAtTime(0.3, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now);
+                osc.stop(now + 0.25);
+            } 
+            else if (type === 'impact') {
+                // Punch / Explosion Sound
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(120, now);
+                osc.frequency.exponentialRampToValueAtTime(30, now + 0.3);
+                gain.gain.setValueAtTime(0.6, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now);
+                osc.stop(now + 0.3);
+            } 
+            else if (type === 'scan') {
+                // Sci-fi scan tone sequence
+                [300, 450, 600, 900].forEach((freq, idx) => {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(freq, now + (idx * 0.08));
+                    gain.gain.setValueAtTime(0.08, now + (idx * 0.08));
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + (idx * 0.08) + 0.08);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(now + (idx * 0.08));
+                    osc.stop(now + (idx * 0.08) + 0.08);
+                });
+            }
+        }
+
+        /* Bat Signal Overlay */
+        function toggleSignal() {
+            const overlay = document.getElementById('signal-overlay');
+            const isActive = overlay.classList.contains('active');
+            
+            if (!isActive) {
+                overlay.classList.add('active');
+                playSound('scan');
+            } else {
+                overlay.classList.remove('active');
+            }
+        }
+
+        /* Spawn Animated Comic Popup Words (POW!, BAM!, etc.) */
+        function showComicPop(x, y, text) {
+            const el = document.createElement('div');
+            el.className = 'comic-pop';
+            el.innerText = text;
+            el.style.left = `${x}px`;
+            el.style.top = `${y}px`;
+            document.body.appendChild(el);
+
+            setTimeout(() => el.remove(), 600);
+        }
+
+        /* Launch Batarang Projectile Animation */
+        function launchBatarang(startX, startY, endX, endY, onHitCallback) {
+            playSound('batarang');
+
+            const template = document.getElementById('batarang-template');
+            const batarang = template.content.cloneNode(true).querySelector('svg');
+
+            batarang.style.left = `${startX}px`;
+            batarang.style.top = `${startY}px`;
+            
+            const deltaX = endX - startX;
+            const deltaY = endY - startY;
+            
+            batarang.style.setProperty('--target-x', `${deltaX}px`);
+            batarang.style.setProperty('--target-y', `${deltaY}px`);
+
+            document.body.appendChild(batarang);
+
+            setTimeout(() => {
+                batarang.remove();
+                playSound('impact');
+
+                // Spawn Impact Effect
+                const impact = document.createElement('div');
+                impact.className = 'batarang-impact';
+                impact.style.left = `${endX}px`;
+                impact.style.top = `${endY}px`;
+                document.body.appendChild(impact);
+                setTimeout(() => impact.remove(), 300);
+
+                if (onHitCallback) onHitCallback();
+            }, 750);
+        }
+
+        /* Action: Throw Batarang at clicked Card */
+        function throwBatarangAtCard(event, word) {
+            const btn = event.currentTarget;
+            const btnRect = btn.getBoundingClientRect();
+
+            // Start from offscreen left/top randomly for dynamic entry
+            const startX = Math.random() > 0.5 ? -50 : window.innerWidth + 50;
+            const startY = Math.random() * (window.innerHeight / 2);
+
+            const endX = btnRect.left + (btnRect.width / 2);
+            const endY = btnRect.top + (btnRect.height / 2);
+
+            launchBatarang(startX, startY, endX, endY, () => {
+                showComicPop(endX, endY, word);
+            });
+        }
+
+        /* Action: Neutralize Rogue Target */
+        function subdueRogue(event, badgeId, rogueName, soundWord) {
+            throwBatarangAtCard(event, soundWord);
+
+            setTimeout(() => {
+                if (badgeId) {
+                    const badge = document.getElementById(badgeId);
+                    if (badge) {
+                        badge.innerText = "Secured in Arkham";
+                        badge.className = "status-badge status-contained";
+                    }
+                }
+            }, 750);
+        }
+
+        /* Action: Vehicle Deployment Screen Shake */
+        function deployVehicle(event, vehicleName, soundWord) {
+            throwBatarangAtCard(event, soundWord);
+
+            setTimeout(() => {
+                document.body.classList.add('shake');
+                setTimeout(() => document.body.classList.remove('shake'), 450);
+            }, 750);
+        }
+
+        /* Action: Tactical Scanning Mode */
+        function triggerTacticalScan(event) {
+            playSound('scan');
+
+            const overlay = document.getElementById('threat-overlay');
+            overlay.classList.add('active');
+
+            const btn = event.currentTarget;
+            const rect = btn.getBoundingClientRect();
+            showComicPop(rect.left + rect.width / 2, rect.top, 'SCANNING...');
+
+            setTimeout(() => {
+                overlay.classList.remove('active');
+            }, 1200);
+        }
+    </script>
+</body>
+</html>
