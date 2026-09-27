@@ -1,0 +1,8 @@
+# cp terraform.tfvars.example terraform.tfvars, then edit both values.
+# terraform.tfvars is gitignored.
+
+# Same bucket as backend.lab.hcl — this stack reads core's state from it.
+state_bucket = "CHANGE_ME-terraform-state-us-east-1"
+
+# The golden AMI you baked. See console_steps.txt Part 1.
+ami_id = "ami-CHANGE_ME"
