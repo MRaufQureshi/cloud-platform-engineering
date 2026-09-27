@@ -94,7 +94,7 @@ variable "instance_name_tag" {
 variable "key_pair" {
   description = "Name of the AWS Key Pair"
   type        = string
-  default     = "nfx-key-pair" # Change for personal account
+  default     = "your-key-pair" # Must exist in your account — see PREREQUISITES.md
 }
 
 # # S3 Variable
