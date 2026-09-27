@@ -1,0 +1,15 @@
+# Template. Copy it, then edit the one value:
+#
+#   cp backend.lab.hcl.example backend.lab.hcl
+#   terraform init -backend-config=backend.lab.hcl
+#
+# backend.lab.hcl is gitignored, so your bucket stays yours.
+#
+# The value below must be the SAME bucket name you were prompted for when you
+# ran `terraform apply` in infra/bootstrap. That is the bucket this stack's
+# state file lives in.
+#
+# It is not in main.tf because a `backend` block is parsed before variables
+# exist and cannot read var.* — supplying it at init time is what keeps this
+# repo from being welded to one AWS account.
+bucket = "CHANGE_ME-terraform-state-us-east-1"
