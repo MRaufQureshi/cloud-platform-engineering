@@ -1,6 +1,7 @@
 # core
 
 The foundation stack: a VPC with public and private subnets across two availability zones, a bastion + private EC2 pair, monitoring, and logging. Every other stack in this repo either reads its outputs or ignores it entirely. That is why `core` must be applied first, and destroyed last.
+
 ---
 
 ## What you'll learn
@@ -29,7 +30,7 @@ The foundation stack: a VPC with public and private subnets across two availabil
 <details>
 <summary>Click to expand</summary>
 
-![Core Architecture Diagram](/infra/core_architecture.png)
+![Core Architecture Diagram](architecture.png)
 
 </details>
 
@@ -54,9 +55,16 @@ Everything in [PREREQUISITES.md](../../PREREQUISITES.md), plus:
 ```bash
 cd infra/core
 
+cp backend.lab.hcl.example backend.lab.hcl
+# edit one line: the bucket name you invented in infra/bootstrap
+
 terraform init -backend-config=backend.lab.hcl
 terraform apply
 ```
+
+`backend.lab.hcl` is gitignored — it names a bucket in *your* account. Commit
+the real one and everybody cloning this repo runs `init` against a bucket they
+have no access to, and gets `AccessDenied`.
 
 Terraform prompts for one value:
 
