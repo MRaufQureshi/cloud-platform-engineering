@@ -10,7 +10,7 @@ terraform {
   #
   # Same code, any account. See backend.lab.hcl in this directory.
   backend "s3" {
-    key    = "terraform.tfstate"
+    key    = "core/terraform.tfstate"
     region = "us-east-1"
     # dynamodb_table = "terraform-state-locks"   # superseded by use_lockfile
     use_lockfile = true # S3-native state locking (Terraform >= 1.10)
