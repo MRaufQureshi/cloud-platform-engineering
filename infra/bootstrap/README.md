@@ -92,7 +92,7 @@ bucket — by name, supplied at init time:
 ```
 infra/bootstrap        creates  →  s3://your-bucket
                                         ▲
-infra/core             backend.lab.hcl ─┤     key = terraform.tfstate
+infra/core             backend.lab.hcl ─┤     key = core/terraform.tfstate
 infra/scaling          backend.lab.hcl ─┤     key = scaling/terraform.tfstate
 infra/rds              backend.lab.hcl ─┤     key = rds/terraform.tfstate
 infra/ecs-fargate      backend.personal.hcl   key = ecs-fargate/terraform.tfstate
