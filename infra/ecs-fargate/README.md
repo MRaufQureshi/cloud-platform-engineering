@@ -3,8 +3,6 @@
 Terraform for the platform a containerised Node service runs on: **VPC → ALB →
 ECS Fargate**. 17 resources, no dependency on any other stack in this repo.
 
-Replaces the imperative `aws-setup.sh` this project started with.
-
 ---
 ## Architecture Diagram
 <details>
