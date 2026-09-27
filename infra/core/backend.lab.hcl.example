@@ -3,8 +3,6 @@
 #   cp backend.lab.hcl.example backend.lab.hcl
 #   terraform init -backend-config=backend.lab.hcl
 #
-# backend.lab.hcl is gitignored, so your bucket stays yours.
-#
 # The value below must be the SAME bucket name you were prompted for when you
 # ran `terraform apply` in infra/bootstrap. That is the bucket this stack's
 # state file lives in.
