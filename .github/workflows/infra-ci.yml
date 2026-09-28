@@ -1,0 +1,78 @@
+name: Infra CI
+
+# Runs on every PR that touches Terraform.
+
+on:
+  pull_request:
+    paths:
+      - "infra/**"
+      - ".github/workflows/infra-ci.yml"
+
+permissions:
+  contents: read
+  pull-requests: write # to comment the plan
+  id-token: write # to get AWS credentials via OIDC
+
+concurrency: # a new push to the PR cancels the previous run
+  group: infra-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # fmt and validate need NO AWS access, so they cover every stack and can never go red for environmental reasons.
+  check:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false # report every broken stack, not just the first
+      matrix:
+        stack: [bootstrap, core, scaling, rds, ecs-fargate]
+    defaults:
+      run:
+        working-directory: infra/${{ matrix.stack }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+
+      - run: terraform fmt -check -recursive
+
+      # -backend=false skips connecting to S3, which is what lets this run without credentials.
+      - run: terraform init -backend=false -input=false
+
+      - run: terraform validate
+
+  # plan needs real credentials and a live state bucket, so it covers
+  # ecs-fargate only — the lab account that core/scaling/rds live in wipes
+  # itself, and a missing bucket there would fail every PR.
+  plan:
+    needs: check
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: infra/ecs-fargate
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_PERSONAL }}
+          aws-region: us-east-1
+
+      - run: terraform init -input=false -backend-config=backend.personal.hcl
+
+      # -lock=false because the plan role is read-only and taking a lock is a write. Safe for plan. Never do this for apply.
+      - name: Plan
+        run: terraform plan -input=false -lock=false -no-color | tee plan.txt
+
+      # tail, not the whole file — a 50-resource plan is unreadable inline. The full output is in the workflow log.
+      - name: Comment the plan on the PR
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          {
+            echo '## Terraform plan — infra/ecs-fargate'
+            echo '```'
+            tail -60 plan.txt
+            echo '```'
+            echo '_Plan only. Nothing applied._'
+          } > comment.md
+          gh pr comment ${{ github.event.pull_request.number }} --body-file comment.md
