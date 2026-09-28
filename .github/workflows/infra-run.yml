@@ -1,0 +1,71 @@
+name: Infra Run
+
+# Manual deploy button. Actions tab > Infra Run > Run workflow.
+# The stack you pick decides which AWS account is used.
+
+on:
+  workflow_dispatch:
+    inputs:
+      stack:
+        description: Which stack
+        type: choice
+        required: true
+        options: [core, ecs-fargate]
+      action:
+        description: What to do
+        type: choice
+        required: true
+        default: plan
+        options: [plan, apply, destroy]
+      confirm:
+        description: 'For destroy only — type: destroy-<stack>'
+        required: false
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency: # never two runs against the same stack at once
+  group: infra-run-${{ inputs.stack }}
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: infra/${{ inputs.stack }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+
+      # A destroy has to be typed out. A dropdown alone is one click away from deleting a database.
+      - name: Confirm destroy
+        if: inputs.action == 'destroy'
+        run: |
+          [ "${{ inputs.confirm }}" = "destroy-${{ inputs.stack }}" ] \
+            || { echo "Confirmation text does not match"; exit 1; }
+
+      # ecs-fargate lives in the personal account, everything else in the lab. One expression instead of two workflows.
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ inputs.stack == 'ecs-fargate'
+                              && vars.AWS_ROLE_PERSONAL
+                              || vars.AWS_ROLE_LAB }}
+          aws-region: us-east-1
+
+      - name: Init
+        run: |
+          if [ "${{ inputs.stack }}" = "ecs-fargate" ]; then
+            terraform init -input=false -backend-config=backend.personal.hcl
+          else
+            terraform init -input=false \
+              -backend-config="bucket=${{ vars.TF_STATE_BUCKET_LAB }}"
+          fi
+
+      - name: Terraform ${{ inputs.action }}
+        run: terraform ${{ inputs.action }} -input=false -no-color ${{ inputs.action == 'plan' && '-lock=false' || '-auto-approve' }}
+
+      - name: Outputs
+        if: inputs.action == 'apply'
+        run: terraform output
