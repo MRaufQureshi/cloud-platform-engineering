@@ -27,7 +27,7 @@ An Auto Scaling Group behind an Application Load Balancer, built on top of `core
 <details>
 <summary>Click to expand</summary>
 
-![Scaling Architecture Diagram](architecture.png)
+![Scaling Architecture Diagram](/infra/core/architecture.png)
 
 </details>
 
