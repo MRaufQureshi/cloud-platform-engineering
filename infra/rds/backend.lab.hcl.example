@@ -1,0 +1,3 @@
+# cp backend.lab.hcl.example backend.lab.hcl, then edit the bucket.
+# Same bucket you gave infra/bootstrap. backend.lab.hcl is gitignored.
+bucket = "CHANGE_ME-terraform-state-us-east-1"
