@@ -1,0 +1,4 @@
+# cp backend.personal.hcl.example backend.personal.hcl, then edit the bucket.
+# Same bucket you gave infra/bootstrap. backend.personal.hcl is gitignored.
+# CI does not read this file — it uses the TF_STATE_BUCKET_PERSONAL variable.
+bucket = "CHANGE_ME-terraform-state-us-east-1"
