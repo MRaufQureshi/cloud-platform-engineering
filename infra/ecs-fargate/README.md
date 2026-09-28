@@ -90,8 +90,15 @@ silently building a second copy of production in the wrong account.
 ### 3. Initialise
 
 ```bash
+cp backend.personal.hcl.example backend.personal.hcl
+# edit one line: the bucket name you invented in infra/bootstrap
+
 terraform init -backend-config=backend.personal.hcl
 ```
+
+`backend.personal.hcl` is gitignored — it names a bucket in your account. CI
+does not read it either; `infra-ci.yml` gets the name from the
+`TF_STATE_BUCKET_PERSONAL` repo variable.
 
 Once per clone. Downloads the AWS provider and connects to the state bucket.
 
@@ -217,8 +224,8 @@ Done.
 | `security_groups.tf` | `myapp-alb-sg`, `myapp-task-sg` |
 | `alb.tf` | load balancer, target group, listener |
 | `ecs.tf` | ECR repo, log group, execution role, cluster, task definition, service |
-| `outputs.tf` | ALB URL, ECR URI, and the names `cd.yml` needs |
-| `backend.personal.hcl` | the state bucket, supplied at `init` |
+| `outputs.tf` | ALB URL, ECR URI, and the names `app-deploy.yml` needs |
+| `backend.personal.hcl.example` | template for the state bucket; copy it, the real file is gitignored |
 | `Makefile` | optional shortcuts — see [Makefile](#makefile-optional) |
 
 Every resource name is prefixed by `var.project`, which defaults to `myapp`.
@@ -259,13 +266,13 @@ Edit `apps/node-ecs-service/server.js`, push a branch, open a PR:
 
 ```
 open a PR
-   └── ci.yml runs
+   └── app-build.yml runs
        builds the image and throws it away
        answers one question: "will this still build?"
        has no AWS credentials at all
 
 add the "deploy" label to the PR         ← deploy from a branch, before merging
-   └── cd.yml runs
+   └── app-deploy.yml runs
        1. OIDC → assumes github-actions-ecs-deploy, gets ~1h credentials
        2. docker build + push       myapp:<commit-sha>
        3. reads the LIVE task definition, swaps only the image field
@@ -274,7 +281,7 @@ add the "deploy" label to the PR         ← deploy from a branch, before mergin
        6. comments the deployed URL on the PR
 
 merge to main
-   └── cd.yml runs again, same steps, from main
+   └── app-deploy.yml runs again, same steps, from main
 ```
 
 Watch it land: **ECR** → a new row tagged with the commit SHA; **ECS** → Task
@@ -283,7 +290,7 @@ definitions → a new revision; **Deployments** tab → `PRIMARY` (new) alongsid
 
 ### Why the two do not fight
 
-Both Terraform and `cd.yml` want to write the task definition:
+Both Terraform and `app-deploy.yml` want to write the task definition:
 
 ```
 ┌──────────────────────────────────────────────┐
