@@ -1,4 +1,4 @@
-name: CI
+name: App Build
 
 on:
   pull_request:
