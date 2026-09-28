@@ -54,14 +54,14 @@ jobs:
                               || vars.AWS_ROLE_LAB }}
           aws-region: us-east-1
 
+      # The bucket comes from a repo Variable, not from a file — backend.*.hcl
+      # is gitignored, so CI never sees it.
       - name: Init
         run: |
-          if [ "${{ inputs.stack }}" = "ecs-fargate" ]; then
-            terraform init -input=false -backend-config=backend.personal.hcl
-          else
-            terraform init -input=false \
-              -backend-config="bucket=${{ vars.TF_STATE_BUCKET_LAB }}"
-          fi
+          terraform init -input=false -backend-config="bucket=${{
+            inputs.stack == 'ecs-fargate'
+            && vars.TF_STATE_BUCKET_PERSONAL
+            || vars.TF_STATE_BUCKET_LAB }}"
 
       - name: Terraform ${{ inputs.action }}
         run: terraform ${{ inputs.action }} -input=false -no-color ${{ inputs.action == 'plan' && '-lock=false' || '-auto-approve' }}

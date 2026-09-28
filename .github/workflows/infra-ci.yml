@@ -57,7 +57,8 @@ jobs:
           role-to-assume: ${{ vars.AWS_ROLE_PERSONAL }}
           aws-region: us-east-1
 
-      - run: terraform init -input=false -backend-config=backend.personal.hcl
+      # backend.personal.hcl is gitignored, so the bucket comes from a variable.
+      - run: terraform init -input=false -backend-config="bucket=${{ vars.TF_STATE_BUCKET_PERSONAL }}"
 
       # -lock=false because the plan role is read-only and taking a lock is a write. Safe for plan. Never do this for apply.
       - name: Plan
