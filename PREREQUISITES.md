@@ -11,6 +11,7 @@ Some things must exist in your AWS account **before** Terraform runs. They are d
 | 3 | `github-actions-ecs-deploy` role + `ecs-deploy` inline policy | IAM | `ecs-fargate` CI/CD |
 | 4 | `AWS_ROLE_ARN` repository variable | GitHub | `ecs-fargate` CI/CD |
 | 5 | EC2 key pair + an alert email | AWS / your inbox | `core`, `scaling`, `rds` |
+| 6 | Terraform role + repo Variables per account | IAM / GitHub | running Terraform from Actions |
 
 Plus one thing for every stack: **`infra/bootstrap` must be applied first** — it
 creates the S3 bucket the others store their state in. See
@@ -407,6 +408,25 @@ curl -s ifconfig.me     # append /32
 ```
 
 It has no default on purpose, so your home IP is never committed. Your ISP changes it; when SSH stops working, re-apply with the new value.
+
+---
+
+## 6. For the GitHub Actions infra pipeline
+
+Only needed if you want to run Terraform from the Actions tab instead of your laptop. `infra-ci.yml` (fmt/validate) works without any of this.
+
+Each AWS account needs its own OIDC provider and Terraform role - repeat sections 1 and 3 in that account, then attach permissions broad enough for Terraform to create what the stacks declare.
+
+| repo Variable | value |
+|---|---|
+| `AWS_ROLE_PERSONAL` | Terraform role ARN in the account holding `ecs-fargate` |
+| `AWS_ROLE_LAB` | Terraform role ARN in the account holding `core`, `scaling`, `rds` |
+| `TF_STATE_BUCKET_LAB` | the state bucket in the lab account |
+
+Settings → Secrets and variables → Actions → Variables.
+
+> A lab account that wipes itself takes the OIDC provider, the role and the
+> state bucket with it. Re-create all three before the pipeline works again.
 
 ---
 
