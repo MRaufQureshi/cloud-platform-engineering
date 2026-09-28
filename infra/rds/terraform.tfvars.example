@@ -1,0 +1,8 @@
+# cp terraform.tfvars.example terraform.tfvars, then edit both values.
+# terraform.tfvars is gitignored — the password must never reach git.
+
+# Same bucket as backend.lab.hcl — this stack reads core's state from it.
+state_bucket = "CHANGE_ME-terraform-state-us-east-1"
+
+# Aurora master password. No default, so apply fails loudly without it.
+db_master_password = "CHANGE_ME"
