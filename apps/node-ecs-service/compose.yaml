@@ -1,0 +1,43 @@
+
+services:
+  # "app" is both the service name and its DNS name on the default network.
+  # Another container reaches this one at http://app:3000 - never an IP address.
+  app: #1st Container
+    # build = Compose builds the image itself, so no separate `docker build`.
+    # Use `image:` instead when pulling something already published.
+    build:
+      context: . # which folder gets sent to the Docker daemon. `.dockerignore` applies
+      dockerfile: Dockerfile.multi
+
+    ports: # HOST:CONTAINER, same as -p. Only the host side is reachable from your Mac.
+      - "8080:3000"
+
+    environment: # same as -e. Redundant here, Dockerfile.multi already sets it.
+      NODE_ENV: production
+
+    # Restart on crash and when Docker Desktop restarts, but not if you stopped
+    # it yourself. The single-machine ancestor of an ECS service holding
+    # desired_count tasks alive, and of a Kubernetes Deployment's replicas.
+    restart: unless-stopped
+
+    depends_on: # start order AND readiness gate
+      db:
+        condition: service_healthy # wait for the healthcheck to PASS, not just start
+
+  db: #2nd Container
+    image: postgres:16-alpine # image gets pulled
+    environment: # postgres reads these on FIRST start only, to create the database
+      POSTGRES_PASSWORD: localdev      # local only, never a real secret
+      POSTGRES_USER: myapp
+      POSTGRES_DB: myapp
+    volumes:
+      - pgdata:/var/lib/postgresql/data # a container's filesystem, MOUNT it into this container
+    healthcheck: # how Docker decides this service is READY, not just running
+      test: ["CMD-SHELL", "pg_isready -U myapp"] # exit 0 = healthy
+      interval: 5s # how often to run it
+      timeout: 3s # no answer in this long counts as a failure
+      retries: 10 # consecutive failures before it is marked unhealthy
+
+# Top-level = create the disk. In-service = plug it in.
+volumes: # TOP LEVEL, same indentation as `services:`, DECLARE that it exists
+  pgdata: # Make a disk called pgdata
