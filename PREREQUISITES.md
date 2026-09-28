@@ -463,6 +463,37 @@ Role name              github-actions-terraform-plan
                        github-actions-terraform-apply
 ```
 
+**Finding `ReadOnlyAccess` in the permissions list is the annoying part.**
+Searching it returns ~196 matches across 10 pages, sorted A→Z, and the one you
+want starts with R — so it sits around page 8.
+
+| | |
+|---|---|
+| Policy name | `ReadOnlyAccess` — no prefix |
+| Type | **AWS managed - job function** |
+| Description | Provides read-only access to AWS services and resources |
+
+Click the **Policy name** column header to sort Z→A and it appears near the top
+of page 1. Not `AmazonS3ReadOnlyAccess` — that covers the state file but not the
+VPC, ALB, ECS or IAM resources a plan has to read.
+
+Or skip the list entirely:
+
+```bash
+aws iam attach-role-policy \
+  --role-name github-actions-terraform-plan \
+  --policy-arn arn:aws:iam::aws:policy/ReadOnlyAccess
+```
+
+**Verify it attached** — the wizard silently drops the permission if you click
+past that screen, and the role then fails with a 403 on the state file:
+
+```bash
+aws iam list-attached-role-policies --role-name github-actions-terraform-plan \
+  --query 'AttachedPolicies[].PolicyName' --output text
+# ReadOnlyAccess
+```
+
 ### Step 3 — fix the trust policy
 
 The wizard writes a name-based `sub`. GitHub sends immutable IDs. Without this the role exists, looks correct, and cannot be assumed.
