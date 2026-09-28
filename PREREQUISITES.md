@@ -6,16 +6,16 @@ Some things must exist in your AWS account **before** Terraform runs. They are d
 
 | # | What | Where | Needed for |
 |---|---|---|---|
-| 1 | GitHub OIDC identity provider | IAM | `ecs-fargate` CI/CD |
+| 1 | GitHub OIDC identity provider | IAM, **one per AWS account** | any workflow that touches that account |
 | 2 | `ecsTaskExecutionRole` | IAM | `ecs-fargate` |
 | 3 | `github-actions-ecs-deploy` role + `ecs-deploy` inline policy | IAM | `ecs-fargate` CI/CD |
 | 4 | `AWS_ROLE_ARN` repository variable | GitHub | `ecs-fargate` CI/CD |
 | 5 | EC2 key pair + an alert email | AWS / your inbox | `core`, `scaling`, `rds` |
-| 6 | Terraform role + repo Variables per account | IAM / GitHub | running Terraform from Actions |
+| 6 | `github-actions-terraform-plan` (personal) + `github-actions-terraform-apply` (lab) roles | IAM, one per account | infra workflows |
+| 7 | `AWS_ROLE_PERSONAL` + `AWS_ROLE_LAB` variables | GitHub | infra workflows |
+| 8 | `TF_STATE_BUCKET_PERSONAL` + `TF_STATE_BUCKET_LAB` variables | GitHub | infra workflows |
 
-Plus one thing for every stack: **`infra/bootstrap` must be applied first** — it
-creates the S3 bucket the others store their state in. See
-[infra/bootstrap/README.md](infra/bootstrap/README.md).
+Plus one thing for every stack: **`infra/bootstrap` must be applied first** — it creates the S3 bucket the others store their state in. See [infra/bootstrap/README.md](infra/bootstrap/README.md).
 
 > **Everything in this repo assumes `us-east-1`.**
 
@@ -346,7 +346,7 @@ aws iam get-role --role-name github-actions-ecs-deploy \
 
 A **Variable**, not a Secret. An ARN is an identifier.
 
-`.github/workflows/cd.yml` reads it as `${{ vars.AWS_ROLE_ARN }}`.
+`.github/workflows/app-deploy.yml` reads it as `${{ vars.AWS_ROLE_ARN }}`.
 
 ---
 
@@ -411,22 +411,111 @@ It has no default on purpose, so your home IP is never committed. Your ISP chang
 
 ---
 
-## 6. For the GitHub Actions infra pipeline
+## 6. Roles for the Terraform pipeline
 
-Only needed if you want to run Terraform from the Actions tab instead of your laptop. `infra-ci.yml` (fmt/validate) works without any of this.
+Needed only to run Terraform from the Actions tab. Skip it and `infra-ci.yml` still checks fmt and validate.
 
-Each AWS account needs its own OIDC provider and Terraform role - repeat sections 1 and 3 in that account, then attach permissions broad enough for Terraform to create what the stacks declare.
+### Where every value goes
 
-| repo Variable | value |
+The state bucket name you invented in `infra/bootstrap` has to appear in **two** places per account — a local file and a GitHub variable. The `.hcl` files are gitignored, so CI can never read them; the variable is how CI learns the name.
+
+| value | local file (gitignored) | GitHub variable |
+|---|---|---|
+| personal account's state bucket | `infra/ecs-fargate/backend.personal.hcl` | `TF_STATE_BUCKET_PERSONAL` |
+| lab account's state bucket | `infra/core/backend.lab.hcl`, and the same in `scaling/` and `rds/` | `TF_STATE_BUCKET_LAB` |
+
+Different strings and `terraform init` finds a different state file — then plans to build everything again.
+
+### Two roles, two accounts
+
+| role | account | permissions | used by |
+|---|---|---|---|
+| `github-actions-terraform-plan` | the one holding `ecs-fargate` | `ReadOnlyAccess` | `infra-ci.yml` |
+| `github-actions-terraform-apply` | the one holding `core` | `AdministratorAccess` | `infra-run.yml` |
+
+Steps 1–3 run **twice** — once per account.
+
+### Step 1 — OIDC provider
+
+Skip if `IAM → Identity providers` already lists `token.actions.githubusercontent.com` **in this account**.
+
+`IAM → Identity providers → Add provider`
+
+```
+Provider type    OpenID Connect
+Provider URL     https://token.actions.githubusercontent.com
+Audience         sts.amazonaws.com
+```
+
+### Step 2 — the role
+
+`IAM → Roles → Create role → Web identity`
+
+```
+Identity provider      token.actions.githubusercontent.com
+Audience               sts.amazonaws.com
+GitHub organization    <your org>
+GitHub repository      <your repo>
+GitHub branch          leave blank
+Permissions            ReadOnlyAccess          (plan role)
+                       AdministratorAccess     (apply role)
+Role name              github-actions-terraform-plan
+                       github-actions-terraform-apply
+```
+
+### Step 3 — fix the trust policy
+
+The wizard writes a name-based `sub`. GitHub sends immutable IDs. Without this the role exists, looks correct, and cannot be assumed.
+
+`IAM → Roles → <the role> → Trust relationships → Edit trust policy`
+
+```json
+"StringLike": {
+  "token.actions.githubusercontent.com:sub": "repo:<ORG>@<ORG_ID>/<REPO>@<REPO_ID>:*"
+}
+```
+
+```bash
+curl -s https://api.github.com/users/<ORG> | grep '"id"'
+curl -s https://api.github.com/repos/<ORG>/<REPO> | grep -m1 '"id"'
+```
+
+Or copy the `Condition` block from the role in §3 — it is identical.
+
+### Step 4 — GitHub variables
+
+`Settings → Secrets and variables → Actions → Variables → New repository variable`
+
+Two role ARNs:
+
+| name | value |
 |---|---|
-| `AWS_ROLE_PERSONAL` | Terraform role ARN in the account holding `ecs-fargate` |
-| `AWS_ROLE_LAB` | Terraform role ARN in the account holding `core`, `scaling`, `rds` |
-| `TF_STATE_BUCKET_LAB` | the state bucket in the lab account |
+| `AWS_ROLE_PERSONAL` | `arn:aws:iam::<personal>:role/github-actions-terraform-plan` |
+| `AWS_ROLE_LAB` | `arn:aws:iam::<lab>:role/github-actions-terraform-apply` |
 
-Settings → Secrets and variables → Actions → Variables.
+Two bucket names — the same strings as the `.hcl` files above:
+
+| name | value |
+|---|---|
+| `TF_STATE_BUCKET_PERSONAL` | the bucket from `infra/ecs-fargate/backend.personal.hcl` |
+| `TF_STATE_BUCKET_LAB` | the bucket from `infra/core/backend.lab.hcl` |
+
+An empty variable produces:
+
+```
+Error: Credentials could not be loaded, please check your action inputs
+```
+
+---
+
+### Notes
+
+`ReadOnlyAccess` cannot write, so `infra-ci.yml` passes `-lock=false` — taking a state lock is a write. A plan changes nothing, so this is safe.
+
+These roles are not Terraform resources: the role is what lets CI run Terraform, so Terraform cannot be what creates it, and `destroy` would delete the credential the pipeline needs.
 
 > A lab account that wipes itself takes the OIDC provider, the role and the
-> state bucket with it. Re-create all three before the pipeline works again.
+> state bucket with it. Redo all four steps there before the pipeline works again.
 
 ---
 
@@ -434,6 +523,7 @@ Settings → Secrets and variables → Actions → Variables.
 
 ```bash
 cd infra/ecs-fargate
+cp backend.personal.hcl.example backend.personal.hcl   # then edit the bucket
 terraform init -backend-config=backend.personal.hcl
 terraform apply
 ```
