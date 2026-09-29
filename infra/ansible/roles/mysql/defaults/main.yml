@@ -1,0 +1,14 @@
+mysql_package: mariadb105-server
+mysql_service_name: mariadb
+mysql_socket: /var/lib/mysql/mysql.sock
+
+# Template code:
+mysql_config_file: /etc/my.cnf.d/ansible.cnf
+mysql_max_connections: 100
+
+app_db_name: pantheon_app
+app_db_user: admin
+
+# No default on purpose — a weak fallback password would ship with the repo.
+# Set it in inventory/group_vars/database_servers.yml, which is gitignored
+# and outranks this file.
