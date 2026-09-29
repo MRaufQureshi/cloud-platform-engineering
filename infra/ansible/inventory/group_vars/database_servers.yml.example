@@ -1,0 +1,10 @@
+# Copy to database_servers.yml and set a password you choose.
+# The real file is gitignored.
+#
+# Ansible loads this automatically because the filename matches the group
+# name in hosts.ini ([database_servers]). Values here beat roles/mysql/defaults.
+
+app_db_name: pantheon_app
+app_db_user: admin
+app_db_password: CHANGE_ME
+mysql_socket: /var/lib/mysql/mysql.sock
