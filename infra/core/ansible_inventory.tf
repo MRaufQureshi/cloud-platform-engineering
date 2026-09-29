@@ -5,7 +5,7 @@
 # Terraform knows the instance's address; Ansible needs it. Instead of copying
 # it by hand after every apply, Terraform writes Ansible's inventory itself.
 resource "local_file" "ansible_inventory" {
-  filename = "${path.module}/../ansible/inventory/hosts.ini"
+  filename        = "${path.module}/../ansible/inventory/hosts.ini"
   file_permission = "0644" # Fix sloppyness
 
   # The private EC2 has no public IP, so Ansible reaches it through a tunnel.
