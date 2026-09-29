@@ -14,6 +14,7 @@ Some things must exist in your AWS account **before** Terraform runs. They are d
 | 6 | `github-actions-terraform-plan` (personal) + `github-actions-terraform-apply` (lab) roles | IAM, one per account | infra workflows |
 | 7 | `AWS_ROLE_PERSONAL` + `AWS_ROLE_LAB` variables | GitHub | infra workflows |
 | 8 | `TF_STATE_BUCKET_PERSONAL` + `TF_STATE_BUCKET_LAB` variables | GitHub | infra workflows |
+| 9 | NAT Gateway uncommented + `ec2-instance-connect:OpenTunnel` | AWS / IAM | `ansible` |
 
 Plus one thing for every stack: **`infra/bootstrap` must be applied first** — it creates the S3 bucket the others store their state in. See [infra/bootstrap/README.md](infra/bootstrap/README.md).
 
@@ -411,7 +412,7 @@ It has no default on purpose, so your home IP is never committed. Your ISP chang
 
 ---
 
-## 6. Roles for the Terraform pipeline
+## 6–8. The Terraform pipeline: two roles, four GitHub variables
 
 Needed only to run Terraform from the Actions tab. Skip it and `infra-ci.yml` still checks fmt and validate.
 
@@ -547,6 +548,66 @@ These roles are not Terraform resources: the role is what lets CI run Terraform,
 
 > A lab account that wipes itself takes the OIDC provider, the role and the
 > state bucket with it. Redo all four steps there before the pipeline works again.
+
+---
+
+## 9. For `infra/ansible` — a tunnel and a NAT Gateway
+
+Skip this unless you are running the Ansible playbooks.
+
+Ansible configures the **private** EC2 in `core`. That instance has no public IP
+and, by default, no route to the internet — so two things have to be true before
+a playbook can do anything.
+
+### A way in
+
+Ansible reaches the instance through the EC2 Instance Connect Endpoint, which
+`core` already creates. You need two things locally:
+
+```bash
+aws --version          # must be 2.12 or newer — older CLIs have no `open-tunnel`
+```
+
+And `ec2-instance-connect:OpenTunnel` on whatever identity you run Ansible as.
+Admin credentials already have it. If yours don't:
+
+**Console:** IAM → Users → *your user* → Add permissions → Create inline policy →
+JSON
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [{
+    "Effect": "Allow",
+    "Action": [
+      "ec2-instance-connect:OpenTunnel",
+      "ec2:DescribeInstances",
+      "ec2:DescribeInstanceConnectEndpoints"
+    ],
+    "Resource": "*"
+  }]
+}
+```
+
+### A way out
+
+The private subnet's route table has no `0.0.0.0/0` entry, so the instance
+cannot download packages. **Uncomment the NAT Gateway block** in
+[`infra/core/network_provisioning.tf`](infra/core/network_provisioning.tf) —
+the `aws_eip`, `aws_nat_gateway` and `aws_route` resources — then:
+
+```bash
+cd infra/core && terraform apply
+```
+
+Without it, `ping` succeeds and **every install task fails**, which is a
+confusing failure the first time you hit it.
+
+> A NAT Gateway is **~$32/month plus data transfer** — the most expensive thing
+> in this repo by a wide margin. It ships commented out on purpose. Turn it on
+> for the exercise, and comment it out again when you're done.
+
+Then follow [`infra/ansible/README.md`](infra/ansible/README.md).
 
 ---
 
