@@ -1,0 +1,45 @@
+- name: Install pip
+  ansible.builtin.package:
+    name: python3-pip
+    state: present
+
+- name: Install Python MySQL bindings via pip
+  ansible.builtin.pip:
+    name: PyMySQL
+    state: present
+
+- name: Install MariaDB server
+  ansible.builtin.package:
+    name: '{{ mysql_package }}'
+    state: present
+
+- name: Start and enable MariaDB service
+  ansible.builtin.service:
+    name: '{{ mysql_service_name }}'
+    state: started
+    enabled: true
+
+# Template code:
+- name: Configure MariaDB max connections
+  ansible.builtin.template:
+    src: my-ansible.cnf.j2
+    dest: '{{ mysql_config_file }}'
+    owner: root
+    group: root
+    mode: '0644'
+  notify: Restart MariaDB
+
+- name: Create application database
+  community.mysql.mysql_db:
+    name: '{{ app_db_name }}'
+    state: present
+    login_unix_socket: '{{ mysql_socket }}'
+
+- name: Create application user
+  community.mysql.mysql_user:
+    name: '{{ app_db_user }}'
+    password: '{{ app_db_password }}'
+    priv: '{{ app_db_name }}.*:ALL'
+    host: localhost
+    state: present
+    login_unix_socket: '{{ mysql_socket }}'
