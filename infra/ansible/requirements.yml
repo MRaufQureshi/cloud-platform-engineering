@@ -5,3 +5,4 @@
 # (brew install ansible) already bundles this.
 collections:
   - name: community.mysql
+  - name: ansible.mysql
