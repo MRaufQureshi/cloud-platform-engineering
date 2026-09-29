@@ -1,0 +1,30 @@
+---
+- name: Install MySQL-compatible database
+  hosts: database_servers
+  become: true
+  tasks:
+    - name: Install MySQL server (Debian/Ubuntu)
+      ansible.builtin.package:
+        name: mysql-server
+        state: present
+      when: ansible_facts['os_family'] != "RedHat"
+
+    - name: Install MariaDB server on Amazon Linux/RHEL/CentOS
+      ansible.builtin.package:
+        name: mariadb105-server
+        state: present
+      when: ansible_facts['os_family'] == "RedHat"
+
+    - name: Start and enable MySQL service
+      ansible.builtin.service:
+        name: mysql
+        state: started
+        enabled: true
+      when: ansible_facts['os_family'] != "RedHat"
+
+    - name: Start and enable MariaDB service
+      ansible.builtin.service:
+        name: mariadb
+        state: started
+        enabled: true
+      when: ansible_facts['os_family'] == "RedHat"
