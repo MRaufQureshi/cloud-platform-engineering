@@ -1,0 +1,7 @@
+---
+# Install with: ansible-galaxy collection install -r requirements.yml
+#
+# Only needed if you installed `ansible-core`. The full `ansible` package
+# (brew install ansible) already bundles this.
+collections:
+  - name: community.mysql
