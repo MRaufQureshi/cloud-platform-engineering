@@ -36,6 +36,28 @@ The foundation stack: a VPC with public and private subnets across two availabil
 
 ---
 
+## Core
+
+<details>
+<summary>Click to expand</summary>
+
+![Core Diagram](core.png)
+
+</details>
+
+---
+
+## Monitor - Metric
+
+<details>
+<summary>Click to expand</summary>
+
+![Metrics Diagram](metrics.png)
+
+</details>
+
+---
+
 ## Prerequisites
 
 Everything in [PREREQUISITES.md](../../PREREQUISITES.md), plus:
