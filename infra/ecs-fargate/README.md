@@ -224,12 +224,50 @@ Done.
 | `security_groups.tf` | `myapp-alb-sg`, `myapp-task-sg` |
 | `alb.tf` | load balancer, target group, listener |
 | `ecs.tf` | ECR repo, log group, execution role, cluster, task definition, service |
+| `inspector.tf` | Amazon Inspector, scanning the images in that ECR repo |
 | `outputs.tf` | ALB URL, ECR URI, and the names `app-deploy.yml` needs |
 | `backend.personal.hcl.example` | template for the state bucket; copy it, the real file is gitignored |
 | `Makefile` | optional shortcuts — see [Makefile](#makefile-optional) |
 
 Every resource name is prefixed by `var.project`, which defaults to `myapp`.
 Change it there if you want different names.
+
+---
+
+## Image scanning
+
+Amazon Inspector scans the images in the ECR repo for known CVEs.
+
+```
+docker push  →  ECR  →  Inspector scans the image  →  findings
+                 ▲
+                 └── and re-scans it whenever a new CVE is published
+```
+
+### See the findings
+
+```bash
+aws inspector2 list-findings --region us-east-1 \
+  --filter-criteria '{"ecrImageRepositoryName":[{"comparison":"EQUALS","value":"myapp"}]}' \
+  --query 'findings[].{sev:severity,title:title,pkg:packageVulnerabilityDetails.vulnerabilityId}' \
+  --output table
+```
+
+Or **ECR → Repositories → myapp → Images**, where the vulnerability count is a
+column. Give it a few minutes after the first push.
+
+### Two things to know
+
+**Enabling Inspector is account-wide, not repository-scoped.** `aws_inspector2_enabler` takes account IDs, not an ECR ARN. `terraform destroy` in this stack switches scanning off for every repository in the account. Fine here, where nothing else lives; think twice before copying this file into a shared account.
+
+### Cost
+
+Roughly **$0.09 per image scanned**, then about **$0.01 per automatic re-scan**.
+With `CONTINUOUS_SCAN` the bill scales with how many images the registry keeps, which is an argument for an ECR lifecycle policy expiring old tags — this stack does not have one yet. At the volume of a lab, cents.
+
+> Prices change and vary by region. Check the
+> [AWS pricing calculator](https://calculator.aws) — these are a reference
+> point, not a quote.
 
 ---
 
