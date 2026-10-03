@@ -34,8 +34,6 @@ The foundation stack: a VPC with public and private subnets across two availabil
 
 </details>
 
----
-
 ## Core
 
 <details>
@@ -45,7 +43,6 @@ The foundation stack: a VPC with public and private subnets across two availabil
 
 </details>
 
----
 
 ## Monitor - Metric
 
@@ -55,8 +52,6 @@ The foundation stack: a VPC with public and private subnets across two availabil
 ![Metrics Diagram](metrics.png)
 
 </details>
-
----
 
 ## Prerequisites
 
