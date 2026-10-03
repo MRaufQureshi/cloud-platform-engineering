@@ -31,6 +31,16 @@ An Aurora MySQL cluster in `core`'s private subnets, reachable only from a clien
 
 </details>
 
+## Reachability Concept
+
+<details>
+<summary>Click to expand</summary>
+
+![Reachability Concept Diagram](reachability.png)
+
+</details>
+
+
 ---
 
 ## Prerequisites
