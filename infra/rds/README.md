@@ -27,7 +27,7 @@ An Aurora MySQL cluster in `core`'s private subnets, reachable only from a clien
 <details>
 <summary>Click to expand</summary>
 
-![RDS Architecture Diagram](/infra/core/architecture.png)
+![RDS Architecture Diagram](rds.png)
 
 </details>
 
