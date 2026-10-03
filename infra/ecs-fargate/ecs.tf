@@ -10,9 +10,9 @@ resource "aws_ecr_repository" "main" {
   image_tag_mutability = "IMMUTABLE"
 
   force_delete = true
-  image_scanning_configuration {
-    scan_on_push = true
-  }
+
+  # No image_scanning_configuration block here: that is ECR's BASIC scanning,
+  # and inspector.tf puts the registry into ENHANCED mode, which supersedes it.
 }
 
 # 2. Log destination. Created here so the execution role never needs
