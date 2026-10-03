@@ -27,11 +27,18 @@ An Auto Scaling Group behind an Application Load Balancer, built on top of `core
 <details>
 <summary>Click to expand</summary>
 
-![Scaling Architecture Diagram](/infra/core/architecture.png)
+![Scaling Architecture Diagram](scaling.png)
 
 </details>
 
----
+## The Loop
+
+<details>
+<summary>Click to expand</summary>
+
+![The Loop Diagram](the_loop.png)
+
+</details>
 
 ## Prerequisites
 
