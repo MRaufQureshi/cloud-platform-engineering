@@ -1,0 +1,9 @@
+# Template. Copy it, then edit the one value:
+#
+#   cp backend.lab.hcl.example backend.lab.hcl
+#   terraform init -backend-config=backend.lab.hcl
+#
+# The bucket is the one `make bootstrap` created (it prints the exact line).
+# backend.lab.hcl is gitignored. CI does not read this file — it uses the
+# THEO_STATE_BUCKET repo Variable.
+bucket = "CHANGE_ME-theo-tfstate-<account-id>-us-east-1"
