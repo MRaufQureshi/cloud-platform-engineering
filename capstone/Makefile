@@ -35,7 +35,7 @@ bootstrap: ## STEP 2: S3 bucket for Terraform state (local state)
 	$(BOOT) apply
 	@$(BOOT) output -raw next_steps
 
-# ---- STEP 3: the actual platform (local, or the THEO Infra Run button in CI) ----
+# ---- STEP 3: the actual platform (local, or the T.H.E.O. Infra Run button in CI) ----
 init: ## wire the theo stack to the S3 backend (needs backend.lab.hcl)
 	$(TF) init -backend-config=backend.lab.hcl
 
@@ -69,7 +69,7 @@ seed-optimizer: ## build and push the :bootstrap optimizer image, then restart t
 	aws ecs wait services-stable --cluster theo-cluster --services theo-optimizer-service --region $(REGION)
 	@echo "optimizer is running"
 
-# Same steps as the THEO App Deploy workflow, for before CI is set up. Every push
+# Same steps as the T.H.E.O. App Deploy workflow, for before CI is set up. Every push
 # needs a NEW tag because the ECR repository is IMMUTABLE (a tag cannot be reused).
 deploy-optimizer: ## build, push (new tag) and roll out the optimizer by hand
 	@set -e; TAG=$$(date +%Y%m%d%H%M%S); \

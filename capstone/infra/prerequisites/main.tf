@@ -107,7 +107,7 @@ resource "aws_iam_role_policy_attachment" "plan_readonly" {
 # runner still wants to be sure the bucket answers. Nothing here writes.
 
 # --------------------------------------------------------------------------
-# 3. APPLY role - main branch only (push, or the manual "THEO Infra Run" button
+# 3. APPLY role - main branch only (push, or the manual "T.H.E.O. Infra Run" button
 # started from main). Pull requests can NEVER assume it.
 # --------------------------------------------------------------------------
 data "aws_iam_policy_document" "apply_trust" {
