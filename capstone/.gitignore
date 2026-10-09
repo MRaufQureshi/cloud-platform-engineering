@@ -9,6 +9,9 @@
 *.key
 **/certs/
 
+# Local copy of the live config (API address, login IDs)
+apps/frontend/public/config.json
+
 # Build output
 dist/
 *.zip
