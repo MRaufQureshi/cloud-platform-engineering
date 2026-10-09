@@ -93,8 +93,9 @@ API=$(terraform output -raw api_url); POOL=$(terraform output -raw cognito_user_
 # 1. No token = refused by API Gateway (the Lambda never runs)
 curl -s -o /dev/null -w "%{http_code}\n" $API/device/device-1/status        # 401
 
-# 2. Get a token. The demo user must pick a new password at first login, which the
-#    React app does for you. For the CLI, use a throwaway user instead:
+# 2. Get a token. The demo user must pick a new password at first login (the React app
+#    does that for you), and its one-time password is a Terraform output: setting a
+#    password on it from the CLI would break that. So use a THROWAWAY user and delete it (step 4):
 aws cognito-idp admin-create-user --user-pool-id $POOL --username tester@theo.demo --message-action SUPPRESS
 aws cognito-idp admin-set-user-password --user-pool-id $POOL --username tester@theo.demo --password 'Throwaway-Pass-123!' --permanent
 TOKEN=$(aws cognito-idp initiate-auth --auth-flow USER_PASSWORD_AUTH --client-id $CLIENT \
