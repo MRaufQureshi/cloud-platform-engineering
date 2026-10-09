@@ -33,9 +33,10 @@ plug-in still returns a plan instead of failing.
 | `main.py` | the SQS / DynamoDB / IoT plumbing |
 | `tests/test_solve.py` | proves the plan is sensible |
 
-**Prices:** real prices from `theo-prices` (Phase 4). Until they exist, or for any
-missing hour, `forecast.fallback_price_ct` supplies a typical German day, so the
-demo never breaks.
+**Prices:** `forecast.build_price_function` picks, in order: the exact date's real
+prices if all 24 hours exist; else the newest complete real day (`latest`, written by
+the price fetcher, because the simulated calendar runs ahead of the real one); else a
+typical German day. A partial day is never mixed in, so the price spread stays real.
 
 **Time:** the optimizer reads "now" from the device's last telemetry
 (`theo-device-state.updated_at`), the simulated clock.

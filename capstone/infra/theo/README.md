@@ -66,6 +66,23 @@ Then watch the car obey: the simulator log shows `new schedule: 54 slots`, and `
 Prove the task is private: `aws ecs describe-tasks ...` shows no public IP, yet the service reaches ECR, SQS and IoT.
 Prove retries work: send a message for a device that never sent telemetry (`aws sqs send-message ... '{"device_id":"device-9","reason":"test"}'`). It fails, retries, and after 3 attempts appears in `theo-replan-dlq`.
 
+## Testing Phase 4 (prices)
+
+```bash
+make -C capstone apply                                       # creates the schedule + 2 Lambdas
+aws lambda invoke --function-name theo-price-fetcher --cli-binary-format raw-in-base64-out /dev/stdout
+# {"source": "awattar", "rows": ..., "devices": [...]}
+
+aws dynamodb query --table-name theo-prices --key-condition-expression '#d = :d' \
+  --expression-attribute-names '{"#d":"date"}' --expression-attribute-values '{":d":{"S":"latest"}}' --select COUNT
+aws s3 ls s3://theo-data-<account>/prices/                   # the raw JSON
+aws logs tail /aws/lambda/theo-price-fetcher --since 5m      # "wrote N price rows from awattar; asked 3 device(s) to re-plan"
+aws events describe-rule --name theo-daily-prices --query ScheduleExpression
+```
+Before 13:00 UTC aWATTar returns only part of a day, so `latest` is not written; that is
+intended. After the first 13:05 run, `latest` holds a complete day.
+Redeploy the optimizer after this phase (`make -C capstone deploy-optimizer`, or merge to `main`): it now prefers real prices.
+
 ## Troubleshooting
 
 | Error | Meaning |
