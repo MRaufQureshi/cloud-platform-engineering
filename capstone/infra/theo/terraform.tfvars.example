@@ -7,3 +7,6 @@
 
 # Your public IP (no /32). Find it with:  curl -s https://checkip.amazonaws.com
 my_ip = "203.0.113.7"
+
+# Where alarm emails go. AWS sends a confirmation link to this address first.
+alert_email = "you@example.com"
