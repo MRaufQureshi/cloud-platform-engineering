@@ -5,8 +5,8 @@
 #
 #   Phase 1  module "network"        module "data"
 #   Phase 2  module "iot"            module "simulator"
-#   Phase 3  module "optimizer"                              <- here
-#   Phase 4  module "ingestion"
+#   Phase 3  module "optimizer"
+#   Phase 4  module "ingestion"                              <- here
 #   Phase 5  module "api"
 #   Phase 6  module "frontend"
 #   Phase 6b module "landing"
@@ -71,4 +71,19 @@ module "optimizer" {
   fargate_sg_id      = module.network.fargate_sg_id
   table_names        = module.data.table_names
   table_arns         = module.data.table_arns
+}
+
+# The daily price fetcher (EventBridge + Lambda) and the forecast stub.
+module "ingestion" {
+  source = "./modules/ingestion"
+
+  project_name      = var.project_name
+  code_dir          = "${path.root}/../../apps/lambdas"
+  prices_table_name = module.data.table_names["prices"]
+  prices_table_arn  = module.data.table_arns["prices"]
+  data_bucket_name  = module.data.data_bucket_name
+  data_bucket_arn   = module.data.data_bucket_arn
+  replan_queue_url  = module.optimizer.replan_queue_url
+  replan_queue_arn  = module.optimizer.replan_queue_arn
+  device_ids        = module.iot.device_ids
 }
