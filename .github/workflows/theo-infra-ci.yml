@@ -76,11 +76,12 @@ jobs:
       - name: Plan
         run: terraform plan -input=false -lock=false -no-color | tee plan.txt
 
-      # tail, not the whole file: a 50-resource plan is unreadable inline. The
-      # full output is in the workflow log.
-      # GitHub hides secrets in the workflow LOG, but not in a comment this job
-      # writes itself, and this repository is public. So the IP is replaced by ***
-      # before anything is posted.
+      # What gets posted, because this repository is PUBLIC:
+      #   - the "Refreshing state..." noise is dropped, so only the verdict and
+      #     any changes remain (the full output stays in the workflow log)
+      #   - GitHub hides secrets in the LOG but not in a comment this job writes
+      #     itself, so the IP becomes *** here
+      #   - the 12-digit AWS account number becomes ************
       - name: Comment the plan on the PR
         env:
           GH_TOKEN: ${{ github.token }}
@@ -88,7 +89,9 @@ jobs:
           {
             echo '## Terraform plan — capstone/infra/theo'
             echo '```'
-            tail -60 plan.txt | sed "s/$TF_VAR_my_ip/***/g"
+            grep -vE ': (Refreshing state|Reading|Read complete)' plan.txt \
+              | tail -60 \
+              | sed -e "s/$TF_VAR_my_ip/***/g" -e 's/[0-9]\{12\}/************/g'
             echo '```'
             echo '_Plan only. Nothing applied._'
           } > comment.md
