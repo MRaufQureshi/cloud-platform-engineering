@@ -63,6 +63,9 @@ table = {name: dynamodb.Table(table_name) for name, table_name in TABLES.items()
 # ----------------------------------------------------------------- metrics
 JOBS = Counter("theo_optimizer_jobs_total", "Re-plan jobs finished", ["result"])
 SOLVE_SECONDS = Histogram("theo_optimizer_solve_seconds", "Time spent in the LP solver")
+# Create both series now so they start at 0, instead of not existing until the first job
+JOBS.labels("ok")
+JOBS.labels("error")
 
 
 # ----------------------------------------------------------------- helpers
