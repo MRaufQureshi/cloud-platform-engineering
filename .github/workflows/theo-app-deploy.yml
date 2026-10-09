@@ -4,7 +4,6 @@ name: T.H.E.O. App Deploy
 # theo-ci.yml, before anything could merge.
 #   optimizer  build the image, push to ECR (tagged with the commit), roll out to ECS
 #   frontend   build the web app, copy it to S3, refresh CloudFront
-# Each job runs only when its own folder changed on main (or from the manual button).
 
 on:
   push:
@@ -32,36 +31,7 @@ concurrency: # two deploys must never run at once
   cancel-in-progress: false
 
 jobs:
-  # Which app changed? Lets one workflow deploy only what is needed.
-  changes:
-    runs-on: ubuntu-latest
-    outputs:
-      optimizer: ${{ steps.scope.outputs.optimizer }}
-      frontend: ${{ steps.scope.outputs.frontend }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0 # the full history, to compare with the commit before this push
-
-      - id: scope
-        run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "optimizer=true" >> "$GITHUB_OUTPUT"
-            echo "frontend=true" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-          files=$(git diff --name-only "${{ github.event.before }}" "${{ github.sha }}")
-          for app in optimizer frontend; do
-            if echo "$files" | grep -qE "^(capstone/apps/$app/|\.github/workflows/theo-app-deploy\.yml)"; then
-              echo "$app=true" >> "$GITHUB_OUTPUT"
-            else
-              echo "$app=false" >> "$GITHUB_OUTPUT"
-            fi
-          done
-
   deploy:
-    needs: changes
-    if: needs.changes.outputs.optimizer == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -122,8 +92,6 @@ jobs:
           wait-for-service-stability: true
 
   deploy-frontend:
-    needs: changes
-    if: needs.changes.outputs.frontend == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
