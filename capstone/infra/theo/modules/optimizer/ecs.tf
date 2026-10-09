@@ -16,6 +16,12 @@ resource "aws_cloudwatch_log_group" "optimizer" {
 
 resource "aws_ecs_cluster" "main" {
   name = "${var.project_name}-cluster"
+
+  # Publishes RunningTaskCount, which the "optimizer not running" alarm watches.
+  setting {
+    name  = "containerInsights"
+    value = "enabled"
+  }
 }
 
 resource "aws_ecs_task_definition" "optimizer" {

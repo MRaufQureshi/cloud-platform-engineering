@@ -31,3 +31,7 @@ output "service_name" {
 output "log_group_name" {
   value = aws_cloudwatch_log_group.optimizer.name
 }
+
+output "replan_queue_name" {
+  value = aws_sqs_queue.replan.name
+}
