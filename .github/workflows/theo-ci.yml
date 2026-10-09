@@ -121,6 +121,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       TF_VAR_my_ip: ${{ secrets.MY_IP }} # terraform.tfvars is gitignored, so CI gets it from a repo secret
+      TF_VAR_alert_email: ${{ secrets.ALERT_EMAIL }}
     defaults:
       run:
         working-directory: capstone/infra/theo
@@ -154,7 +155,7 @@ jobs:
             echo '```'
             grep -vE ': (Refreshing state|Reading|Read complete)' plan.txt \
               | tail -60 \
-              | sed -e "s/$TF_VAR_my_ip/***/g" -e 's/[0-9]\{12\}/************/g'
+              | sed -e "s/$TF_VAR_my_ip/***/g" -e "s/$TF_VAR_alert_email/***/g" -e 's/[0-9]\{12\}/************/g'
             echo '```'
             echo '_Plan only. Nothing applied._'
           } > comment.md
