@@ -28,7 +28,7 @@ variable "project_name" {
 # Phase 1. Only this address may open Grafana (:3000). It changes whenever your
 # ISP rotates it, so check it before each apply:
 #     curl -s https://checkip.amazonaws.com
-# Local runs read it from terraform.tfvars (gitignored); CI reads the THEO_MY_IP
+# Local runs read it from terraform.tfvars (gitignored); CI reads the MY_IP
 # repo SECRET (a secret, not a Variable: the repository is public).
 variable "my_ip" {
   description = "Your current public IPv4 address, e.g. 203.0.113.7 (no /32)"
