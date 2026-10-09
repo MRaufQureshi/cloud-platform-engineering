@@ -3,10 +3,18 @@ name: App Deploy
 on:
   push:
     branches: [main] # when something merges on main then deploy
+    # The THEO capstone has its own workflows (theo-*.yml). A push that touches
+    # ONLY capstone files must not deploy this app.
+    paths-ignore:
+      - "capstone/**"
+      - ".github/workflows/theo-*.yml"
 
   workflow_dispatch: # manual "Run workflow" button
   pull_request:
     types: [labeled] # to trigger over PR, a label needs to be added
+    paths-ignore:
+      - "capstone/**"
+      - ".github/workflows/theo-*.yml"
 
 permissions:
   id-token: write           # ask GitHub for a signed OIDC token, without it: "Credentials could not be loaded"
