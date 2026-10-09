@@ -14,7 +14,7 @@ automates most of that with its own three-step ladder.
 | 2 | Lab credentials | `make -C capstone check-account` must print `464447071956` | every session |
 | 3 | GitHub OIDC provider + CI roles | **`make -C capstone prerequisites`** | once per lab wipe |
 | 4 | Terraform state bucket | **`make -C capstone bootstrap`** | once per lab wipe |
-| 5 | GitHub repo Variables (three) plus one secret, `THEO_MY_IP` (from Phase 1) | by hand (below) | after steps 3 and 4 |
+| 5 | GitHub repo Variables (three) plus one secret, `MY_IP` (from Phase 1) | by hand (below) | after steps 3 and 4 |
 | 6 | Docker, Node.js | install locally | Phase 3 (optimizer) and Phase 6 (frontend) |
 
 Items 3 and 4 are Terraform in `infra/prerequisites/` and `infra/bootstrap/`.
@@ -59,7 +59,7 @@ Creates the S3 bucket for the `theo` stack's state. Details in
 name and the exact `backend.lab.hcl` line.
 
 ## 4. Set the GitHub repo Variables
-(Three Variables, plus the `THEO_MY_IP` secret from Phase 1 on.)
+(Three Variables, plus the `MY_IP` secret from Phase 1 on.)
 
 Settings → Secrets and variables → Actions → **Variables** → New repository
 variable. (Variables, not Secrets: role ARNs and bucket names are not secret,
@@ -76,7 +76,7 @@ New repository secret):
 
 | Secret | Value |
 |---|---|
-| `THEO_MY_IP` | your public IP, no `/32` (`curl -s https://checkip.amazonaws.com`) |
+| `MY_IP` | your public IP, no `/32` (`curl -s https://checkip.amazonaws.com`) |
 
 It is a secret, not a Variable, because this repository is public: a Variable can
 be read by anyone, and the IP is personal. It is the only address allowed to open
