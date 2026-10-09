@@ -41,3 +41,32 @@ def solar_kw(dt):
 
 def fallback_price_ct(dt):
     return FALLBACK_PRICE_CT[dt.hour]
+
+
+def build_price_function(rows_by_date, latest):
+    """
+    A function dt -> ct/kWh, built from what the price fetcher stored.
+
+      rows_by_date  {"2026-10-09": {"17": 8.5, ...}}  real prices per date and hour
+      latest        {"17": 8.5, ...}                  the newest complete real day, or {}
+
+    Order of preference for a moment dt:
+      1. real prices for dt's own date, if that date has all 24 hours
+      2. the "latest" complete day (the simulation runs ahead of the calendar,
+         so its dates often have no real prices of their own)
+      3. the built-in typical curve
+
+    A date counts only if COMPLETE. Mixing a few real hours (0-12 ct) with the
+    built-in curve (18-43 ct) would invent a price spread that does not exist.
+    """
+
+    def price_ct(dt):
+        hour = dt.strftime("%H")
+        day = rows_by_date.get(dt.strftime("%Y-%m-%d"), {})
+        if len(day) == 24:
+            return day[hour]
+        if len(latest) == 24:
+            return latest[hour]
+        return fallback_price_ct(dt)
+
+    return price_ct
