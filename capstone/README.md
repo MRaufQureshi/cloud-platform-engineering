@@ -92,7 +92,9 @@ has not run yet at 9:00). To bring the demo back, in this order:
 | 6 | Get the demo login | `cd capstone/infra/theo && terraform output demo_username && terraform output -raw demo_temporary_password` | a wipe recreates the login pool, so the demo user and its one-time password are NEW every rebuild |
 | 7 | Put the web app back (the bucket is recreated empty) | **Actions → T.H.E.O. App Deploy → Run workflow** | `apply` rebuilds the bucket, CloudFront and `config.json`, but not the app files |
 | 8 | Open the app | `cd capstone/infra/theo && terraform output -raw app_url` | the address changes after every rebuild |
-| 9 | Wait ~3 minutes, then plug a car in (or press PLUG IN in the app) | `aws iot-data publish --topic theo/device-1/control --cli-binary-format raw-in-base64-out --payload '{"cmd":"plug_in"}'` | the simulator box needs that long to boot |
+| 9 | Open Grafana | `cd capstone/infra/theo && terraform output -raw grafana_url`, password: `aws secretsmanager get-secret-value --secret-id theo/grafana-admin-password --query SecretString --output text` | user `admin`; only your IP can reach it, so update `my_ip` if your IP changed |
+| 10 | Confirm the alarm email | click the link in the email AWS sends to `alert_email` | a rebuild creates a new subscription, and alarm emails only start after the click |
+| 11 | Wait ~3 minutes, then plug a car in (or press PLUG IN in the app) | `aws iot-data publish --topic theo/device-1/control --cli-binary-format raw-in-base64-out --payload '{"cmd":"plug_in"}'` | the simulator box needs that long to boot |
 
 If `prerequisites` or `bootstrap` were wiped too (the OIDC roles or the state bucket
 are gone), repeat steps 1 and 2 of the Quickstart first.
@@ -120,7 +122,7 @@ capstone/
 | 5 | API + auth (Cognito, API Gateway JWT, API Lambda) | done (22 resources) |
 | 6 | frontend (React on a private S3 bucket + CloudFront) | done (7 resources) |
 | 6b | landing page: ECS Fargate (private subnets) behind an ALB, HTTP, with an "Optimizer" button to the React login | |
-| 7 | observability + security | |
+| 7 | observability + security (Prometheus, Grafana, alarms, CloudTrail, Inspector) | done (25 resources + 1 changed) |
 | 8 | demo polish + destroy rehearsal | |
 
 ## Deliberately excluded

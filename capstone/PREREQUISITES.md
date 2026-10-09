@@ -14,7 +14,7 @@ automates most of that with its own three-step ladder.
 | 2 | Lab credentials | `make -C capstone check-account` must print `464447071956` | every session |
 | 3 | GitHub OIDC provider + CI roles | **`make -C capstone prerequisites`** | once per lab wipe |
 | 4 | Terraform state bucket | **`make -C capstone bootstrap`** | once per lab wipe |
-| 5 | GitHub repo Variables (three) plus one secret, `MY_IP` (from Phase 1) | by hand (below) | after steps 3 and 4 |
+| 5 | GitHub repo Variables (three) plus two secrets, `MY_IP` and `ALERT_EMAIL` (from Phase 7) | by hand (below) | after steps 3 and 4 |
 | 6 | Docker, Node.js 22+ (with npm) | install locally | Phase 3 (optimizer) and Phase 6 (frontend: `npm ci`, `npm run dev`) |
 | 7 | `curl`, plus lab credentials that may use Cognito (`cognito-idp`) | already on most machines | Phase 5, testing the API from a terminal |
 
@@ -60,7 +60,7 @@ Creates the S3 bucket for the `theo` stack's state. Details in
 name and the exact `backend.lab.hcl` line.
 
 ## 4. Set the GitHub repo Variables
-(Three Variables, plus the `MY_IP` secret from Phase 1 on.)
+(Three Variables, plus the `MY_IP` secret from Phase 1 on and the `ALERT_EMAIL` secret from Phase 7 on.)
 
 Settings → Secrets and variables → Actions → **Variables** → New repository
 variable. (Variables, not Secrets: role ARNs and bucket names are not secret,
@@ -78,6 +78,7 @@ New repository secret):
 | Secret | Value |
 |---|---|
 | `MY_IP` | your public IP, no `/32` (`curl -s https://checkip.amazonaws.com`) |
+| `ALERT_EMAIL` | the email address that receives the alarm emails (a secret because the repository is public) |
 
 It is a secret, not a Variable, because this repository is public: a Variable can
 be read by anyone, and the IP is personal. It is the only address allowed to open
@@ -94,7 +95,7 @@ pull requests are never red for want of a bucket.
 ```bash
 cd capstone/infra/theo
 cp backend.lab.hcl.example backend.lab.hcl     # paste the bucket from step 2
-cp terraform.tfvars.example terraform.tfvars   # set my_ip (Phase 1 on)
+cp terraform.tfvars.example terraform.tfvars   # set my_ip and alert_email
 cd ../../.. && make -C capstone init plan
 ```
 
