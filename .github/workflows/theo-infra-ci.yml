@@ -52,7 +52,7 @@ jobs:
     if: vars.AWS_THEO_ROLE_PLAN != '' && vars.THEO_STATE_BUCKET != ''
     runs-on: ubuntu-latest
     env:
-      TF_VAR_my_ip: ${{ secrets.THEO_MY_IP }} # terraform.tfvars is gitignored, so CI gets it from a repo secret
+      TF_VAR_my_ip: ${{ secrets.MY_IP }} # terraform.tfvars is gitignored, so CI gets it from a repo secret
     defaults:
       run:
         working-directory: capstone/infra/theo
@@ -60,8 +60,8 @@ jobs:
       - uses: actions/checkout@v4
       - uses: hashicorp/setup-terraform@v3
 
-      - name: Check the THEO_MY_IP secret exists
-        run: '[ -n "$TF_VAR_my_ip" ] || { echo "Add the repository SECRET THEO_MY_IP (see capstone/PREREQUISITES.md)"; exit 1; }'
+      - name: Check the MY_IP secret exists
+        run: '[ -n "$TF_VAR_my_ip" ] || { echo "Add the repository SECRET MY_IP (see capstone/PREREQUISITES.md)"; exit 1; }'
 
       # The read-only role: a pull request can plan but never change anything.
       - uses: aws-actions/configure-aws-credentials@v4
