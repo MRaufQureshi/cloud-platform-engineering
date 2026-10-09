@@ -137,6 +137,24 @@ Then open `$APP` in a browser: sign in with `terraform output demo_username` and
 `terraform output -raw demo_temporary_password`, choose a new password, press PLUG IN, and watch the
 Dashboard fill in.
 
+## Testing Phase 7 (Grafana, alarms, security)
+
+```bash
+make -C capstone apply
+cd capstone/infra/theo
+terraform output -raw grafana_url                       # http://<ip>:3000
+aws secretsmanager get-secret-value --secret-id theo/grafana-admin-password --query SecretString --output text
+```
+- **Email:** click the confirmation link AWS sends to `alert_email`.
+- **Grafana:** open the URL, log in as `admin`, open the dashboard **T.H.E.O. platform**. The "Targets up" panel
+  should show all four jobs UP. Give the box about 3 minutes after `apply` to install everything.
+- **Targets from the box itself** (Prometheus is not open to the internet): run on the box through SSM
+  `curl -s localhost:9090/api/v1/targets` and check every target is `up`.
+- **An alarm:** stop the optimizer (`aws ecs update-service --cluster theo-cluster --service theo-optimizer-service --desired-count 0`),
+  wait about 8 minutes (Container Insights publishes its metric with a delay) for `theo-optimizer-not-running` to go to ALARM and send an email, then set `--desired-count 1`.
+- **Inspector:** `aws inspector2 list-findings --max-results 5`. Findings appear after the first scans (can take a while).
+- **CloudTrail:** `aws cloudtrail get-trail-status --name theo-trail --query IsLogging`.
+
 ## Troubleshooting
 
 | Error | Meaning |
