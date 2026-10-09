@@ -3,7 +3,7 @@
 #   cp terraform.tfvars.example terraform.tfvars
 #
 # terraform.tfvars is gitignored. CI does not read it — it uses the THEO_MY_IP
-# repo Variable.
+# repo secret.
 
 # Your public IP (no /32). Find it with:  curl -s https://checkip.amazonaws.com
 my_ip = "203.0.113.7"
