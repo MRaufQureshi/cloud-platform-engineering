@@ -15,7 +15,7 @@ automates most of that with its own three-step ladder.
 | 3 | GitHub OIDC provider + CI roles | **`make -C capstone prerequisites`** | once per lab wipe |
 | 4 | Terraform state bucket | **`make -C capstone bootstrap`** | once per lab wipe |
 | 5 | GitHub repo Variables (three) plus one secret, `MY_IP` (from Phase 1) | by hand (below) | after steps 3 and 4 |
-| 6 | Docker, Node.js 22+ (with npm) | install locally | Phase 3 (optimizer) and Phase 6 (frontend: `npm ci`, `npm run dev`, `deploy-frontend`) |
+| 6 | Docker, Node.js 22+ (with npm) | install locally | Phase 3 (optimizer) and Phase 6 (frontend: `npm ci`, `npm run dev`) |
 | 7 | `curl`, plus lab credentials that may use Cognito (`cognito-idp`) | already on most machines | Phase 5, testing the API from a terminal |
 
 Items 3 and 4 are Terraform in `infra/prerequisites/` and `infra/bootstrap/`.
