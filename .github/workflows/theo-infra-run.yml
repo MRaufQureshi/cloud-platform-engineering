@@ -1,0 +1,67 @@
+name: THEO Infra Run
+
+# Manual button for the capstone. Actions tab > THEO Infra Run > Run workflow.
+# Only the `theo` stack runs here. `prerequisites` and `bootstrap` are always
+# run by hand from your laptop (they create the access this workflow uses).
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: What to do
+        type: choice
+        required: true
+        default: plan
+        options: [plan, apply, destroy]
+      confirm:
+        description: "For destroy only — type: destroy-theo"
+        required: false
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency: # never two runs against the same state at once
+  group: theo-infra-run
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    env:
+      TF_VAR_my_ip: ${{ vars.THEO_MY_IP }}
+    defaults:
+      run:
+        working-directory: capstone/infra/theo
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+
+      # A destroy has to be typed out. A dropdown alone is one click away from
+      # tearing down the whole platform.
+      - name: Confirm destroy
+        if: inputs.action == 'destroy'
+        run: |
+          [ "${{ inputs.confirm }}" = "destroy-theo" ] \
+            || { echo "Confirmation text does not match"; exit 1; }
+
+      # Least privilege: a plan only needs the read-only role. Apply and destroy
+      # use the apply role, which can only be assumed from the main branch.
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ inputs.action == 'plan'
+                              && vars.AWS_THEO_ROLE_PLAN
+                              || vars.AWS_THEO_ROLE_APPLY }}
+          aws-region: us-east-1
+
+      # The bucket comes from a repo Variable, not from a file: backend.*.hcl is
+      # gitignored, so CI never sees it.
+      - name: Init
+        run: terraform init -input=false -backend-config="bucket=${{ vars.THEO_STATE_BUCKET }}"
+
+      - name: Terraform ${{ inputs.action }}
+        run: terraform ${{ inputs.action }} -input=false -no-color ${{ inputs.action == 'plan' && '-lock=false' || '-auto-approve' }}
+
+      - name: Outputs
+        if: inputs.action == 'apply'
+        run: terraform output
