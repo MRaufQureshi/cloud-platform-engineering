@@ -1,14 +1,22 @@
-name: THEO Infra CI
+name: THEO CI
 
-# The capstone's own CI. Runs only when something under capstone/infra/ changes,
-# so it never shows up on pull requests that touch other parts of the repo.
-# (The repo's Infra CI is unrelated and untouched.)
+# All of the capstone's CHECKS, on pull requests. Deploying is a different job
+# (theo-app-deploy.yml, theo-infra-run.yml). Runs only when something under
+# capstone/infra/ or the apps changes, so it never shows up on pull requests that
+# touch other parts of the repo. (The repo's own CI workflows are untouched.)
+#
+#   check            terraform fmt + validate for every stack      (no AWS access)
+#   plan             terraform plan, posted as a PR comment        (read-only role)
+#   test-optimizer   the optimizer's unit tests + a Docker build   (no AWS access)
+#   test-lambdas     the Lambda unit tests                         (no AWS access)
 
 on:
   pull_request:
     paths:
       - "capstone/infra/**"
-      - ".github/workflows/theo-infra-ci.yml"
+      - "capstone/apps/optimizer/**"
+      - "capstone/apps/lambdas/**"
+      - ".github/workflows/theo-ci.yml"
 
 permissions:
   contents: read
@@ -16,7 +24,7 @@ permissions:
   id-token: write # to get AWS credentials via OIDC
 
 concurrency: # a new push to the PR cancels the previous run
-  group: theo-infra-ci-${{ github.ref }}
+  group: theo-ci-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -41,6 +49,50 @@ jobs:
       - run: terraform init -backend=false -input=false
 
       - run: terraform validate
+
+  # The optimizer's maths: target reached, reserve respected, cheaper than naive.
+  test-optimizer:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: capstone/apps/optimizer
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11" # same as the Dockerfile
+          cache: pip
+          cache-dependency-path: capstone/apps/optimizer/requirements-dev.txt
+
+      - run: pip install -r requirements-dev.txt
+
+      - run: python -m pytest -q
+
+      # Prove the image still builds. Nothing is pushed from here; that is the
+      # deploy workflow's job, after the merge.
+      - run: docker build -t theo-optimizer:ci .
+
+  # The Lambdas need no image and no AWS access: just their unit tests. (They are
+  # deployed by Terraform, which zips and uploads them on `apply`.)
+  test-lambdas:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11" # same runtime as the Lambdas
+
+      - run: pip install pytest boto3
+
+      # One folder per function; every folder with a tests/ directory is tested.
+      - name: Run the Lambda tests
+        run: |
+          for dir in capstone/apps/lambdas/*/tests; do
+            echo "== $dir"
+            (cd "$(dirname "$dir")" && python -m pytest -q)
+          done
 
   # plan needs real credentials, a live state bucket and your IP. The lab wipes
   # itself, so until the repo Variables exist (see capstone/PREREQUISITES.md)

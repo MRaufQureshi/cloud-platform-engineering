@@ -1,18 +1,15 @@
 name: THEO App Deploy
 
-# Builds and deploys the capstone's optimizer image. Runs ONLY when something
-# under capstone/apps/optimizer/ changes, so it stays out of every other pull
-# request and push. (The repo's App Deploy is unrelated and untouched.)
+# Deploys the capstone's optimizer image: build, push to ECR (tagged with the
+# commit), roll out to ECS. DEPLOY ONLY. The tests ran on the pull request, in
+# theo-ci.yml, before anything could merge.
 #
-#   pull request  -> test + build the image, deploy nothing
-#   push to main  -> test, build, push to ECR (tagged with the commit), roll out to ECS
-#   manual button -> same as a push to main
+# Runs when a change under capstone/apps/optimizer/ lands on main, or from the
+# manual button. It never runs on a pull request. (The Lambdas are deployed by
+# Terraform, which zips and uploads them on `apply`, so they do not appear here.)
+# (The repo's own App Deploy is unrelated and untouched.)
 
 on:
-  pull_request:
-    paths:
-      - "capstone/apps/optimizer/**"
-      - ".github/workflows/theo-app-deploy.yml"
   push:
     branches: [main]
     paths:
@@ -37,32 +34,7 @@ concurrency: # two deploys must never run at once
   cancel-in-progress: false
 
 jobs:
-  # Needs no AWS access, so it can run on any pull request.
-  test:
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: capstone/apps/optimizer
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.11" # same as the Dockerfile
-          cache: pip
-          cache-dependency-path: capstone/apps/optimizer/requirements-dev.txt
-
-      - run: pip install -r requirements-dev.txt
-
-      # The optimizer's maths: target reached, reserve respected, cheaper than naive.
-      - run: python -m pytest -q
-
-      # Prove the image still builds. Nothing is pushed from a pull request.
-      - run: docker build -t theo-optimizer:ci .
-
   deploy:
-    needs: test
-    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
