@@ -34,7 +34,7 @@ Three steps, always in this order:
 Steps 1 and 2 print the exact follow-up commands (the `gh variable set` lines
 and the `backend.lab.hcl` line). The full checklist, including the three GitHub
 Variables, is in [PREREQUISITES.md](PREREQUISITES.md). Step 3 can also run from GitHub:
-**Actions → THEO Infra Run**.
+**Actions → T.H.E.O. Infra Run**.
 
 Step 1 cannot run in CI: it creates the very access CI needs. After a lab wipe,
 delete the leftover `terraform.tfstate` in `infra/prerequisites/` and
@@ -51,7 +51,7 @@ has not run yet at 9:00). To bring the demo back, in this order:
 |---|---|---|---|
 | 1 | Check which account you are in | `make -C capstone check-account` | must print the lab account |
 | 2 | See what is missing | `make -C capstone plan` | a wipe shows as "has been deleted" + additions, no destroys |
-| 3 | Rebuild | `make -C capstone apply` (or **Actions → THEO Infra Run → apply**) | ~10 min, mostly the NAT gateway |
+| 3 | Rebuild | `make -C capstone apply` (or **Actions → T.H.E.O. Infra Run → apply**) | ~10 min, mostly the NAT gateway |
 | 4 | Put the optimizer image back (only if the ECR repo was wiped) | `make -C capstone seed-optimizer` | an empty repository cannot start the task |
 | 5 | Fetch prices (optional) | `make -C capstone prices` | the daily schedule only fires at 13:05 UTC; without prices the optimizer uses a typical day |
 | 6 | Wait ~3 minutes, then plug a car in | `aws iot-data publish --topic theo/device-1/control --cli-binary-format raw-in-base64-out --payload '{"cmd":"plug_in"}'` | the simulator box needs that long to boot |
@@ -77,7 +77,7 @@ capstone/
 | 0 | prerequisites, bootstrap, `theo` skeleton, CI hooks | done |
 | 1 | network + data | done (48 resources) |
 | 2 | IoT + simulator | done (33 resources) |
-| 3 | optimizer (ECS Fargate, HiGHS) + SQS + Rule B + THEO App Deploy | done (12 resources) |
+| 3 | optimizer (ECS Fargate, HiGHS) + SQS + Rule B + T.H.E.O. App Deploy | done (12 resources) |
 | 4 | prices (EventBridge + Lambda) + forecast stub | done (12 resources) |
 | 5 | API + auth (Cognito) | |
 | 6 | frontend (CloudFront) | |

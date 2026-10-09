@@ -97,7 +97,7 @@ cp terraform.tfvars.example terraform.tfvars   # set my_ip (Phase 1 on)
 cd ../../.. && make -C capstone init plan
 ```
 
-Or: **Actions → THEO Infra Run**.
+Or: **Actions → T.H.E.O. Infra Run**.
 
 ---
 
