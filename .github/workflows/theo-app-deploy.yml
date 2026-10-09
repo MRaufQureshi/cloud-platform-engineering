@@ -106,5 +106,29 @@ jobs:
           role-to-assume: ${{ vars.AWS_THEO_ROLE_APPLY }}
           aws-region: ${{ env.AWS_REGION }}
 
-      # The same script you run by hand: npm ci, build, S3 sync, CloudFront refresh.
-      - run: capstone/apps/frontend/deploy-frontend.sh
+      - name: Install dependencies
+        working-directory: capstone/apps/frontend
+        run: npm ci
+
+      - name: Build the app
+        working-directory: capstone/apps/frontend
+        run: npm run build
+
+      - name: Copy the app to S3
+        working-directory: capstone/apps/frontend
+        run: |
+          BUCKET=theo-site-$(aws sts get-caller-identity --query Account --output text)
+          aws s3 sync dist/assets s3://$BUCKET/assets --delete --cache-control "public,max-age=31536000,immutable"
+          aws s3 cp dist/index.html s3://$BUCKET/index.html --cache-control "no-cache" --content-type "text/html"
+
+      - name: Refresh CloudFront
+        run: |
+          DIST=$(aws cloudfront list-distributions --query "DistributionList.Items[?Comment=='theo-site'].Id | [0]" --output text)
+          aws cloudfront create-invalidation --distribution-id $DIST --paths "/index.html"
+
+      - name: Show the app address
+        run: |
+          URL=$(aws cloudfront list-distributions --query "DistributionList.Items[?Comment=='theo-site'].DomainName | [0]" --output text)
+          echo "App address: https://$URL"
+          echo "### App deployed" >> "$GITHUB_STEP_SUMMARY"
+          echo "https://$URL" >> "$GITHUB_STEP_SUMMARY"
