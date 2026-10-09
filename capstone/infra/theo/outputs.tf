@@ -67,3 +67,27 @@ output "price_fetcher_name" {
   description = "Run it now: aws lambda invoke --function-name <this> /dev/stdout"
   value       = module.ingestion.price_fetcher_name
 }
+
+# --- Phase 5
+output "api_url" {
+  description = "Base URL of the API"
+  value       = module.api.api_url
+}
+
+output "cognito_user_pool_id" {
+  value = module.api.user_pool_id
+}
+
+output "cognito_client_id" {
+  value = module.api.client_id
+}
+
+output "demo_username" {
+  value = module.api.demo_username
+}
+
+output "demo_temporary_password" {
+  description = "terraform output -raw demo_temporary_password"
+  value       = module.api.demo_temporary_password
+  sensitive   = true
+}
