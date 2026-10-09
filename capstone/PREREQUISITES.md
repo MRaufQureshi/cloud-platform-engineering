@@ -15,7 +15,7 @@ automates most of that with its own three-step ladder.
 | 3 | GitHub OIDC provider + CI roles | **`make -C capstone prerequisites`** | once per lab wipe |
 | 4 | Terraform state bucket | **`make -C capstone bootstrap`** | once per lab wipe |
 | 5 | GitHub repo Variables (three) plus one secret, `MY_IP` (from Phase 1) | by hand (below) | after steps 3 and 4 |
-| 6 | Docker, Node.js | install locally | Phase 3 (optimizer) and Phase 6 (frontend) |
+| 6 | Docker, Node.js 22+ (with npm) | install locally | Phase 3 (optimizer) and Phase 6 (frontend: `npm ci`, `npm run dev`, `deploy-frontend`) |
 | 7 | `curl`, plus lab credentials that may use Cognito (`cognito-idp`) | already on most machines | Phase 5, testing the API from a terminal |
 
 Items 3 and 4 are Terraform in `infra/prerequisites/` and `infra/bootstrap/`.
@@ -101,6 +101,21 @@ cd ../../.. && make -C capstone init plan
 Or: **Actions → T.H.E.O. Infra Run**.
 
 ---
+
+## Where do I run `terraform output demo_username` and `terraform output -raw demo_temporary_password`?
+
+In your own terminal, inside **`capstone/infra/theo`** (or from the repo root with
+`terraform -chdir=capstone/infra/theo output ...`). What that needs:
+
+| Requirement | Why |
+|---|---|
+| Lab account credentials in the terminal (`make -C capstone check-account` prints the lab account) | Terraform reads the values from the state in the lab's S3 bucket |
+| `capstone/infra/theo` initialised once (`make -C capstone init`, needs `backend.lab.hcl`, see section 5 above) | otherwise Terraform does not know where the state is |
+| The platform applied at least through Phase 5 | the demo user is created by the `api` module |
+
+They show the demo login (an email address and a one-time password). Cognito asks you to choose a new
+password, **10 or more characters** with upper and lower case, a number and a symbol, the first time you
+log in. After a lab wipe and rebuild the login is new again, so run the two commands again.
 
 ## After a lab wipe
 
