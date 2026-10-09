@@ -23,11 +23,10 @@ browser ──HTTPS──► CloudFront ──signed request (OAC)──► priv
 | `src/pages/Control.jsx` | the car card (PLUG IN / PLUG OUT, battery, status) and the settings form |
 | `src/pages/Dashboard.jsx` | savings, today's plan chart, live battery line, online indicator |
 | `src/lib.js` (+ `lib.test.js`) | the pure logic, unit-tested |
-| `deploy-frontend.sh` | build, copy to S3, refresh CloudFront |
 
 **`config.json`.** Terraform writes it into the bucket (API address, login pool and client IDs). Those values
 are new after every lab wipe, so the app downloads them at start-up instead of having them compiled in: the
-same build works after any rebuild. `deploy-frontend.sh` never overwrites it.
+same build works after any rebuild.
 
 **A plug button** only sends a command. The simulated car reports back, and the optimizer makes a new plan.
 The app polls every 5 seconds (no websockets). Charging is drawn upwards in the plan chart and discharging
@@ -43,7 +42,7 @@ npm run dev                               # http://localhost:5173 (the one local
 ```
 
 ## Deploy
-`make -C capstone deploy-frontend` (also run by **T.H.E.O. App Deploy** when this folder changes on `main`).
+**T.H.E.O. App Deploy** runs when this folder changes on `main`, or from **Actions → T.H.E.O. App Deploy → Run workflow**. The run's Summary page shows the app address as a link.
 The first deploy needs the platform applied (`make -C capstone apply`). The address is `terraform output app_url`.
 
 Cache rules: files in `assets/` have a hash in their name and are cached for a year; `index.html` is never
