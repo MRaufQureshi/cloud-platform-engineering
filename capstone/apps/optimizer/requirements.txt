@@ -1,0 +1,6 @@
+# PuLP is pinned to 3.x on purpose: 4.0 is a rewrite whose expression API differs
+# from every tutorial. HiGHS is the solver, reached through the highspy package.
+pulp>=3.3,<4
+highspy>=1.11,<2
+boto3>=1.34,<2
+prometheus_client>=0.20,<1
