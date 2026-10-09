@@ -1,0 +1,123 @@
+name: THEO App Deploy
+
+# Builds and deploys the capstone's optimizer image. Runs ONLY when something
+# under capstone/apps/optimizer/ changes, so it stays out of every other pull
+# request and push. (The repo's App Deploy is unrelated and untouched.)
+#
+#   pull request  -> test + build the image, deploy nothing
+#   push to main  -> test, build, push to ECR (tagged with the commit), roll out to ECS
+#   manual button -> same as a push to main
+
+on:
+  pull_request:
+    paths:
+      - "capstone/apps/optimizer/**"
+      - ".github/workflows/theo-app-deploy.yml"
+  push:
+    branches: [main]
+    paths:
+      - "capstone/apps/optimizer/**"
+      - ".github/workflows/theo-app-deploy.yml"
+  workflow_dispatch:
+
+permissions:
+  id-token: write # ask GitHub for a signed OIDC token
+  contents: read
+
+env:
+  AWS_REGION: us-east-1
+  ECR_REPOSITORY: theo-optimizer
+  ECS_CLUSTER: theo-cluster
+  ECS_SERVICE: theo-optimizer-service
+  ECS_TASK_FAMILY: theo-optimizer
+  CONTAINER_NAME: optimizer
+
+concurrency: # two deploys must never run at once
+  group: theo-app-deploy
+  cancel-in-progress: false
+
+jobs:
+  # Needs no AWS access, so it can run on any pull request.
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: capstone/apps/optimizer
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11" # same as the Dockerfile
+          cache: pip
+          cache-dependency-path: capstone/apps/optimizer/requirements-dev.txt
+
+      - run: pip install -r requirements-dev.txt
+
+      # The optimizer's maths: target reached, reserve respected, cheaper than naive.
+      - run: python -m pytest -q
+
+      # Prove the image still builds. Nothing is pushed from a pull request.
+      - run: docker build -t theo-optimizer:ci .
+
+  deploy:
+    needs: test
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # No stored secrets: GitHub's signed token is exchanged for ~1 hour of
+      # credentials. The apply role can only be assumed from the main branch.
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_THEO_ROLE_APPLY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Log in to Amazon ECR
+        id: ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      # The commit SHA is the tag, so every image is traceable to a commit. The
+      # repository has IMMUTABLE tags: pushing the same SHA twice is refused.
+      - name: Build and push image
+        working-directory: capstone/apps/optimizer
+        env:
+          REGISTRY: ${{ steps.ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build --platform linux/amd64 -t "$REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" .
+          docker push "$REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+
+      # Read what is actually deployed, change ONE field (the image), register
+      # that as a new revision. jq strips read-only fields that
+      # register-task-definition rejects.
+      - name: Download current task definition
+        run: |
+          aws ecs describe-task-definition \
+            --task-definition "$ECS_TASK_FAMILY" \
+            --query 'taskDefinition' \
+          | jq 'del(.taskDefinitionArn, .revision, .status, .requiresAttributes,
+                    .compatibilities, .registeredAt, .registeredBy)
+                | with_entries(select(.value != null))' \
+          > task-definition.json
+
+      - name: Render task definition with new image
+        id: render
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: task-definition.json
+          container-name: ${{ env.CONTAINER_NAME }}
+          image: ${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
+
+      # Registers the revision, points the service at it, and waits until the
+      # rollout is healthy. (Terraform ignores the service's task_definition, so
+      # the next apply will not roll this back.)
+      - name: Deploy to Amazon ECS
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
+        with:
+          task-definition: ${{ steps.render.outputs.task-definition }}
+          service: ${{ env.ECS_SERVICE }}
+          cluster: ${{ env.ECS_CLUSTER }}
+          wait-for-service-stability: true
