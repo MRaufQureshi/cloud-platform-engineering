@@ -121,7 +121,7 @@ The demo user for the browser: `terraform output demo_username`, and the one-tim
 
 ```bash
 make -C capstone apply                    # bucket, CloudFront (a few minutes), config.json
-make -C capstone deploy-frontend          # build + upload the app
+# Actions → T.H.E.O. App Deploy → Run workflow   (builds and uploads the app; the run's Summary shows the address)
 cd capstone/infra/theo
 APP=$(terraform output -raw app_url); echo $APP
 
