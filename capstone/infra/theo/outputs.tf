@@ -61,3 +61,9 @@ output "optimizer_log_group" {
   description = "aws logs tail <this> --follow"
   value       = module.optimizer.log_group_name
 }
+
+# --- Phase 4
+output "price_fetcher_name" {
+  description = "Run it now: aws lambda invoke --function-name <this> /dev/stdout"
+  value       = module.ingestion.price_fetcher_name
+}
