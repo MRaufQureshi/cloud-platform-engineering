@@ -5,6 +5,7 @@ name: T.H.E.O. CI
 #   plan             terraform plan, posted as a PR comment        (read-only role)
 #   test-optimizer   the optimizer's unit tests + a Docker build   (no AWS access)
 #   test-lambdas     the Lambda unit tests                         (no AWS access)
+#   test-frontend    the web app's tests + a production build      (no AWS access)
 
 on:
   pull_request:
@@ -12,6 +13,7 @@ on:
       - "capstone/infra/**"
       - "capstone/apps/optimizer/**"
       - "capstone/apps/lambdas/**"
+      - "capstone/apps/frontend/**"
       - ".github/workflows/theo-ci.yml"
 
 permissions:
@@ -86,6 +88,27 @@ jobs:
             echo "== $dir"
             (cd "$(dirname "$dir")" && python -m pytest -q)
           done
+
+  # Unit tests for the helper functions, then a real build (catches broken imports).
+  test-frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: capstone/apps/frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: capstone/apps/frontend/package-lock.json
+
+      - run: npm ci
+
+      - run: npm test
+
+      - run: npm run build
 
   # plan needs real credentials, a live state bucket and your IP. The lab wipes
   # itself, so until the repo Variables exist (see capstone/PREREQUISITES.md)

@@ -1,17 +1,17 @@
 name: T.H.E.O. App Deploy
 
-# Deploys the capstone's optimizer image: build, push to ECR (tagged with the
-# commit), roll out to ECS. DEPLOY ONLY. The tests ran on the pull request, in
+# Deploys the capstone's apps. DEPLOY ONLY: the tests ran on the pull request, in
 # theo-ci.yml, before anything could merge.
-#
-# Runs when a change under capstone/apps/optimizer/ lands on main, or from the
-# manual button.
+#   optimizer  build the image, push to ECR (tagged with the commit), roll out to ECS
+#   frontend   build the web app, copy it to S3, refresh CloudFront
+# Each job runs only when its own folder changed on main (or from the manual button).
 
 on:
   push:
     branches: [main]
     paths:
       - "capstone/apps/optimizer/**"
+      - "capstone/apps/frontend/**"
       - ".github/workflows/theo-app-deploy.yml"
   workflow_dispatch:
 
@@ -32,7 +32,36 @@ concurrency: # two deploys must never run at once
   cancel-in-progress: false
 
 jobs:
+  # Which app changed? Lets one workflow deploy only what is needed.
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      optimizer: ${{ steps.scope.outputs.optimizer }}
+      frontend: ${{ steps.scope.outputs.frontend }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # the full history, to compare with the commit before this push
+
+      - id: scope
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "optimizer=true" >> "$GITHUB_OUTPUT"
+            echo "frontend=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          files=$(git diff --name-only "${{ github.event.before }}" "${{ github.sha }}")
+          for app in optimizer frontend; do
+            if echo "$files" | grep -qE "^(capstone/apps/$app/|\.github/workflows/theo-app-deploy\.yml)"; then
+              echo "$app=true" >> "$GITHUB_OUTPUT"
+            else
+              echo "$app=false" >> "$GITHUB_OUTPUT"
+            fi
+          done
+
   deploy:
+    needs: changes
+    if: needs.changes.outputs.optimizer == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -91,3 +120,23 @@ jobs:
           service: ${{ env.ECS_SERVICE }}
           cluster: ${{ env.ECS_CLUSTER }}
           wait-for-service-stability: true
+
+  deploy-frontend:
+    needs: changes
+    if: needs.changes.outputs.frontend == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_THEO_ROLE_APPLY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      # The same script you run by hand: npm ci, build, S3 sync, CloudFront refresh.
+      - run: capstone/apps/frontend/deploy-frontend.sh
