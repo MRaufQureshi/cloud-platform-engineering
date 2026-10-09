@@ -52,6 +52,25 @@ stored but no `latest` is written, and the optimizer (which uses only complete d
 keeps using its typical curve. That is expected, and the demo works either way. After
 13:00 UTC a manual run gets a complete day and everything uses real prices.
 
+## `api_handler/`: the API behind the web app
+
+One function behind seven API Gateway routes. By the time a request reaches it, API
+Gateway has already checked the user's login token (a Cognito JWT), so this code only
+decides what each route does.
+
+| Route | Does |
+|---|---|
+| `POST /device/{id}/plug-in`, `/plug-out` | publish a command to `theo/{id}/control` over IoT Core |
+| `GET /device/{id}/status` | the device's latest state, plus whether it is online (real clock) |
+| `GET /device/{id}/savings` | EUR saved today and this month, **added up here, never in the browser** |
+| `GET /device/{id}/schedule` | the current plan, slot by slot |
+| `GET` / `PUT /device/{id}/settings` | reserve %, target %, departure time; a save asks the optimizer for a new plan |
+
+Two safety points: the device ID is checked against a fixed list (it ends up in an MQTT
+topic and a database key, so a caller must never invent one), and the settings are
+validated before anything is stored. "Today" and "this month" use the **simulated**
+date, because the simulation runs ahead of the calendar. 27 unit tests, no AWS needed.
+
 ## `forecast/`: a stub
 
 Returns fixed load and solar curves. It marks where real forecasting (weather-based
