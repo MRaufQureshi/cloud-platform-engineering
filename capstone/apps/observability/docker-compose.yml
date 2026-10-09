@@ -1,0 +1,29 @@
+# Two containers on the observability box: Prometheus collects numbers, Grafana draws them.
+# Both use the host's network (network_mode: host), so they reach each other and
+# node_exporter on localhost, and Grafana is on port 3000 of the box.
+services:
+  prometheus:
+    image: prom/prometheus:v2.55.1
+    network_mode: host
+    restart: always
+    volumes:
+      - /opt/theo/observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - /opt/theo/observability/targets:/etc/prometheus/targets:ro
+      - prometheus-data:/prometheus
+
+  grafana:
+    image: grafana/grafana:11.3.0
+    network_mode: host
+    restart: always
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - /opt/theo/observability/grafana/datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml:ro
+      - /opt/theo/observability/grafana/dashboards.yml:/etc/grafana/provisioning/dashboards/dashboards.yml:ro
+      - /opt/theo/observability/grafana/theo-dashboard.json:/var/lib/grafana/dashboards/theo-dashboard.json:ro
+      - grafana-data:/var/lib/grafana
+
+volumes:
+  prometheus-data:
+  grafana-data:
