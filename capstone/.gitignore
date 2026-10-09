@@ -1,0 +1,20 @@
+# Capstone-only ignore rules. The repo's root .gitignore already covers
+# *.tfstate, *.tfvars, backend.*.hcl and node_modules; this adds the rest.
+
+# Saved Terraform plans can embed secrets and are only valid for one apply.
+*.tfplan
+
+# Device certificates and private keys: never in git.
+*.pem
+*.key
+**/certs/
+
+# Build output
+dist/
+*.zip
+__pycache__/
+.venv/
+.pytest_cache/
+
+# The three private T.H.E.O. project notes stay local; every README is committed.
+T.H.E.O*.md
