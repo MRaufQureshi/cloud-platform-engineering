@@ -44,19 +44,24 @@ jobs:
 
   # plan needs real credentials, a live state bucket and your IP. The lab wipes
   # itself, so until the repo Variables exist (see capstone/PREREQUISITES.md)
-  # this job skips instead of failing every pull request.
+  # this job skips instead of failing every pull request. (The IP is a SECRET, not
+  # a Variable: the repository is public. A job-level `if` cannot read secrets, so
+  # a step below checks it instead.)
   plan:
     needs: check
-    if: vars.AWS_THEO_ROLE_PLAN != '' && vars.THEO_STATE_BUCKET != '' && vars.THEO_MY_IP != ''
+    if: vars.AWS_THEO_ROLE_PLAN != '' && vars.THEO_STATE_BUCKET != ''
     runs-on: ubuntu-latest
     env:
-      TF_VAR_my_ip: ${{ vars.THEO_MY_IP }} # terraform.tfvars is gitignored, so CI gets it from a repo Variable
+      TF_VAR_my_ip: ${{ secrets.THEO_MY_IP }} # terraform.tfvars is gitignored, so CI gets it from a repo secret
     defaults:
       run:
         working-directory: capstone/infra/theo
     steps:
       - uses: actions/checkout@v4
       - uses: hashicorp/setup-terraform@v3
+
+      - name: Check the THEO_MY_IP secret exists
+        run: '[ -n "$TF_VAR_my_ip" ] || { echo "Add the repository SECRET THEO_MY_IP (see capstone/PREREQUISITES.md)"; exit 1; }'
 
       # The read-only role: a pull request can plan but never change anything.
       - uses: aws-actions/configure-aws-credentials@v4
@@ -73,6 +78,9 @@ jobs:
 
       # tail, not the whole file: a 50-resource plan is unreadable inline. The
       # full output is in the workflow log.
+      # GitHub hides secrets in the workflow LOG, but not in a comment this job
+      # writes itself, and this repository is public. So the IP is replaced by ***
+      # before anything is posted.
       - name: Comment the plan on the PR
         env:
           GH_TOKEN: ${{ github.token }}
@@ -80,7 +88,7 @@ jobs:
           {
             echo '## Terraform plan — capstone/infra/theo'
             echo '```'
-            tail -60 plan.txt
+            tail -60 plan.txt | sed "s/$TF_VAR_my_ip/***/g"
             echo '```'
             echo '_Plan only. Nothing applied._'
           } > comment.md
