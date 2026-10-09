@@ -85,7 +85,7 @@ Grafana. Your ISP rotates it, so update it when it changes.
 These are deliberately separate from `AWS_ROLE_LAB` / `TF_STATE_BUCKET_LAB`, which
 belong to `core`, `scaling` and `rds`. The two sets never overlap.
 
-Until the Variables exist, the `plan` job in `theo-infra-ci.yml` skips itself, so
+Until the Variables exist, the `plan` job in `theo-ci.yml` skips itself, so
 pull requests are never red for want of a bucket.
 
 ## 5. Step 3 — the platform
