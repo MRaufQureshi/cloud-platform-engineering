@@ -25,3 +25,7 @@ output "certificates" {
 output "rule_error_log_group" {
   value = aws_cloudwatch_log_group.rule_errors.name
 }
+
+output "telemetry_rule_name" {
+  value = aws_iot_topic_rule.telemetry.name
+}
