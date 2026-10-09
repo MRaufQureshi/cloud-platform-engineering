@@ -51,6 +51,6 @@ python3 -m venv .venv && .venv/bin/pip install -r requirements-dev.txt
 
 ## Deploy
 First time: `make -C capstone seed-optimizer` (builds and pushes `:bootstrap`).
-After that the **THEO App Deploy** workflow builds, pushes (tagged with the commit
+After that the **T.H.E.O. App Deploy** workflow builds, pushes (tagged with the commit
 SHA) and rolls out on every merge to `main` that touches this folder.
 Logs: `make -C capstone optimizer-logs`.
