@@ -1,6 +1,6 @@
-name: THEO Infra Run
+name: T.H.E.O. Infra Run
 
-# Manual button for the capstone. Actions tab > THEO Infra Run > Run workflow.
+# Manual button for the capstone. Actions tab > T.H.E.O. Infra Run > Run workflow.
 # Only the `theo` stack runs here. `prerequisites` and `bootstrap` are always
 # run by hand from your laptop (they create the access this workflow uses).
 

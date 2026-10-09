@@ -1,10 +1,6 @@
-name: THEO CI
+name: T.H.E.O. CI
 
-# All of the capstone's CHECKS, on pull requests. Deploying is a different job
-# (theo-app-deploy.yml, theo-infra-run.yml). Runs only when something under
-# capstone/infra/ or the apps changes, so it never shows up on pull requests that
-# touch other parts of the repo. (The repo's own CI workflows are untouched.)
-#
+# All of the capstone's CHECKS, on pull requests.
 #   check            terraform fmt + validate for every stack      (no AWS access)
 #   plan             terraform plan, posted as a PR comment        (read-only role)
 #   test-optimizer   the optimizer's unit tests + a Docker build   (no AWS access)
@@ -28,8 +24,7 @@ concurrency: # a new push to the PR cancels the previous run
   cancel-in-progress: true
 
 jobs:
-  # fmt and validate need NO AWS access, so they can never go red for
-  # environmental reasons (a wiped lab, a missing bucket).
+  # fmt and validate
   check:
     runs-on: ubuntu-latest
     strategy:
@@ -69,12 +64,10 @@ jobs:
 
       - run: python -m pytest -q
 
-      # Prove the image still builds. Nothing is pushed from here; that is the
-      # deploy workflow's job, after the merge.
+      # Prove the image still builds. Nothing is pushed from here
       - run: docker build -t theo-optimizer:ci .
 
-  # The Lambdas need no image and no AWS access: just their unit tests. (They are
-  # deployed by Terraform, which zips and uploads them on `apply`.)
+  # Just run their unit tests.
   test-lambdas:
     runs-on: ubuntu-latest
     steps:
@@ -128,12 +121,7 @@ jobs:
       - name: Plan
         run: terraform plan -input=false -lock=false -no-color | tee plan.txt
 
-      # What gets posted, because this repository is PUBLIC:
-      #   - the "Refreshing state..." noise is dropped, so only the verdict and
-      #     any changes remain (the full output stays in the workflow log)
-      #   - GitHub hides secrets in the LOG but not in a comment this job writes
-      #     itself, so the IP becomes *** here
-      #   - the 12-digit AWS account number becomes ************
+      # The repo is PUBLIC: the comment hides the IP and the account number, and drops the refresh noise.
       - name: Comment the plan on the PR
         env:
           GH_TOKEN: ${{ github.token }}
