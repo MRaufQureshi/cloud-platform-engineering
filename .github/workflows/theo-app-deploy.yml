@@ -1,13 +1,11 @@
-name: THEO App Deploy
+name: T.H.E.O. App Deploy
 
 # Deploys the capstone's optimizer image: build, push to ECR (tagged with the
 # commit), roll out to ECS. DEPLOY ONLY. The tests ran on the pull request, in
 # theo-ci.yml, before anything could merge.
 #
 # Runs when a change under capstone/apps/optimizer/ lands on main, or from the
-# manual button. It never runs on a pull request. (The Lambdas are deployed by
-# Terraform, which zips and uploads them on `apply`, so they do not appear here.)
-# (The repo's own App Deploy is unrelated and untouched.)
+# manual button.
 
 on:
   push:
