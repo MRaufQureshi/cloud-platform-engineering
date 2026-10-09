@@ -48,12 +48,30 @@ The login is Amazon Cognito. Terraform creates one demo user and a random one-ti
 
 ```bash
 cd capstone/infra/theo
+terraform output -raw app_url                        # the web app's address
 terraform output demo_username                       # admin@theo.demo
 terraform output -raw demo_temporary_password        # only shown on request, never in git
 ```
 
-At the first login Cognito makes you choose a new password (the web app shows that screen).
+At the first login Cognito makes you choose a new password (the web app shows that screen). The new
+password needs **10 or more characters**, with upper and lower case, a number and a symbol.
 After a lab wipe and rebuild the user is new again, so repeat the two commands above.
+
+**Q: Where do I run `terraform output demo_username` and `terraform output -raw demo_temporary_password`?**
+In your own terminal, in the main stack's folder, `capstone/infra/theo`:
+
+```bash
+cd capstone/infra/theo
+terraform output demo_username
+terraform output -raw demo_temporary_password
+```
+
+Or from the repo root, without changing folder:
+`terraform -chdir=capstone/infra/theo output demo_username` (same for the password).
+Your terminal needs the **lab account credentials**, because Terraform reads the values from the state in the
+lab's S3 bucket (`make -C capstone check-account` must print the lab account). The folder must have been
+initialised once (`make -C capstone init`); after a lab wipe, redo steps 1 and 2 first. The password prints
+without a trailing newline (`-raw`), so copy only the characters before your prompt.
 
 **Testing the API from a terminal?** Do not set a password on the demo user: its one-time
 password would stop working. Use a throwaway user and delete it afterwards. The exact
@@ -72,7 +90,9 @@ has not run yet at 9:00). To bring the demo back, in this order:
 | 4 | Put the optimizer image back (only if the ECR repo was wiped) | `make -C capstone seed-optimizer` | an empty repository cannot start the task |
 | 5 | Fetch prices (optional) | `make -C capstone prices` | the daily schedule only fires at 13:05 UTC; without prices the optimizer uses a typical day |
 | 6 | Get the demo login | `cd capstone/infra/theo && terraform output demo_username && terraform output -raw demo_temporary_password` | a wipe recreates the login pool, so the demo user and its one-time password are NEW every rebuild |
-| 7 | Wait ~3 minutes, then plug a car in | `aws iot-data publish --topic theo/device-1/control --cli-binary-format raw-in-base64-out --payload '{"cmd":"plug_in"}'` | the simulator box needs that long to boot |
+| 7 | Put the web app back (the bucket is recreated empty) | `make -C capstone deploy-frontend` | `apply` rebuilds the bucket, CloudFront and `config.json`, but not the app files |
+| 8 | Open the app | `cd capstone/infra/theo && terraform output -raw app_url` | the address changes after every rebuild |
+| 9 | Wait ~3 minutes, then plug a car in (or press PLUG IN in the app) | `aws iot-data publish --topic theo/device-1/control --cli-binary-format raw-in-base64-out --payload '{"cmd":"plug_in"}'` | the simulator box needs that long to boot |
 
 If `prerequisites` or `bootstrap` were wiped too (the OIDC roles or the state bucket
 are gone), repeat steps 1 and 2 of the Quickstart first.
@@ -98,7 +118,7 @@ capstone/
 | 3 | optimizer (ECS Fargate, HiGHS) + SQS + Rule B + T.H.E.O. App Deploy | done (12 resources) |
 | 4 | prices (EventBridge + Lambda) + forecast stub | done (12 resources) |
 | 5 | API + auth (Cognito, API Gateway JWT, API Lambda) | done (22 resources) |
-| 6 | frontend (CloudFront) | |
+| 6 | frontend (React on a private S3 bucket + CloudFront) | done (7 resources) |
 | 6b | landing page: ECS Fargate (private subnets) behind an ALB, HTTP, with an "Optimizer" button to the React login | |
 | 7 | observability + security | |
 | 8 | demo polish + destroy rehearsal | |

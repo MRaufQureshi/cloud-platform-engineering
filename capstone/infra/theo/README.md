@@ -117,6 +117,26 @@ aws cognito-idp admin-delete-user --user-pool-id $POOL --username tester@theo.de
 The demo user for the browser: `terraform output demo_username`, and the one-time password with
 `terraform output -raw demo_temporary_password`.
 
+## Testing Phase 6 (the web app)
+
+```bash
+make -C capstone apply                    # bucket, CloudFront (a few minutes), config.json
+make -C capstone deploy-frontend          # build + upload the app
+cd capstone/infra/theo
+APP=$(terraform output -raw app_url); echo $APP
+
+curl -s -o /dev/null -w "%{http_code}\n" $APP/                  # 200: the app
+curl -s -o /dev/null -w "%{http_code}\n" $APP/dashboard         # 200: no such file, but CloudFront answers with index.html
+curl -s $APP/config.json                                        # the API address and login IDs
+curl -s -o /dev/null -w "%{http_code}\n" https://$(terraform output -raw frontend_bucket).s3.amazonaws.com/index.html   # 403: the bucket is private
+
+# the API accepts the app's address and refuses others (CORS)
+curl -s -i -X OPTIONS -H "Origin: $APP" -H "Access-Control-Request-Method: GET" -H "Access-Control-Request-Headers: authorization" $(terraform output -raw api_url)/device/device-1/status | grep -i access-control-allow-origin
+```
+Then open `$APP` in a browser: sign in with `terraform output demo_username` and
+`terraform output -raw demo_temporary_password`, choose a new password, press PLUG IN, and watch the
+Dashboard fill in.
+
 ## Troubleshooting
 
 | Error | Meaning |
