@@ -91,3 +91,13 @@ output "demo_temporary_password" {
   value       = module.api.demo_temporary_password
   sensitive   = true
 }
+
+# --- Phase 6
+output "app_url" {
+  description = "Open this in a browser"
+  value       = module.frontend.cloudfront_url
+}
+
+output "frontend_bucket" {
+  value = module.frontend.bucket_name
+}
