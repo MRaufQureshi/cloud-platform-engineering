@@ -1,0 +1,7 @@
+apiVersion: 1
+providers:
+  - name: theo
+    folder: THEO
+    type: file
+    options:
+      path: /var/lib/grafana/dashboards
