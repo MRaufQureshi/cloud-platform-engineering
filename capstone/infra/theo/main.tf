@@ -120,3 +120,34 @@ module "frontend" {
   user_pool_client_id = module.api.client_id
   device_ids          = module.iot.device_ids
 }
+
+# CloudTrail, Inspector and the Grafana password.
+module "security" {
+  source = "./modules/security"
+
+  project_name      = var.project_name
+  account_id        = data.aws_caller_identity.current.account_id
+  audit_bucket_name = module.data.audit_bucket_name
+  audit_bucket_arn  = module.data.audit_bucket_arn
+}
+
+# Prometheus + Grafana on a second EC2 box, and the email alarms.
+module "observability" {
+  source = "./modules/observability"
+
+  project_name         = var.project_name
+  region               = var.region
+  subnet_id            = module.network.public_subnet_ids[1]
+  security_group_id    = module.network.obs_sg_id
+  code_dir             = "${path.root}/../../apps/observability"
+  data_bucket_name     = module.data.data_bucket_name
+  data_bucket_arn      = module.data.data_bucket_arn
+  simulator_private_ip = module.simulator.private_ip
+  cluster_name         = module.optimizer.cluster_name
+  service_name         = module.optimizer.service_name
+  replan_queue_name    = module.optimizer.replan_queue_name
+  dlq_name             = module.optimizer.dlq_name
+  telemetry_rule_name  = module.iot.telemetry_rule_name
+  grafana_secret_arn   = module.security.grafana_secret_arn
+  alert_email          = var.alert_email
+}

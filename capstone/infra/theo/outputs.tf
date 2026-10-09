@@ -101,3 +101,14 @@ output "app_url" {
 output "frontend_bucket" {
   value = module.frontend.bucket_name
 }
+
+# --- Phase 7
+output "grafana_url" {
+  description = "Open this in a browser (only your IP can reach it)"
+  value       = module.observability.grafana_url
+}
+
+output "grafana_secret_name" {
+  description = "The Grafana admin password is stored under this name in Secrets Manager"
+  value       = module.security.grafana_secret_name
+}
