@@ -79,7 +79,7 @@ capstone/
 | 2 | IoT + simulator | done (33 resources) |
 | 3 | optimizer (ECS Fargate, HiGHS) + SQS + Rule B + T.H.E.O. App Deploy | done (12 resources) |
 | 4 | prices (EventBridge + Lambda) + forecast stub | done (12 resources) |
-| 5 | API + auth (Cognito) | |
+| 5 | API + auth (Cognito, API Gateway JWT, API Lambda) | done (22 resources) |
 | 6 | frontend (CloudFront) | |
 | 6b | landing page: ECS Fargate (private subnets) behind an ALB, HTTP, with an "Optimizer" button to the React login | |
 | 7 | observability + security | |

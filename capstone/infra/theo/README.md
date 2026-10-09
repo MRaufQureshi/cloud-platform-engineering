@@ -83,10 +83,45 @@ Before 13:00 UTC aWATTar returns only part of a day, so `latest` is not written;
 intended. After the first 13:05 run, `latest` holds a complete day.
 Redeploy the optimizer after this phase (`make -C capstone deploy-optimizer`, or merge to `main`): it now prefers real prices.
 
+## Testing Phase 5 (login + API)
+
+```bash
+make -C capstone apply
+cd capstone/infra/theo
+API=$(terraform output -raw api_url); POOL=$(terraform output -raw cognito_user_pool_id); CLIENT=$(terraform output -raw cognito_client_id)
+
+# 1. No token = refused by API Gateway (the Lambda never runs)
+curl -s -o /dev/null -w "%{http_code}\n" $API/device/device-1/status        # 401
+
+# 2. Get a token. The demo user must pick a new password at first login, which the
+#    React app does for you. For the CLI, use a throwaway user instead:
+aws cognito-idp admin-create-user --user-pool-id $POOL --username tester@theo.demo --message-action SUPPRESS
+aws cognito-idp admin-set-user-password --user-pool-id $POOL --username tester@theo.demo --password 'Throwaway-Pass-123!' --permanent
+TOKEN=$(aws cognito-idp initiate-auth --auth-flow USER_PASSWORD_AUTH --client-id $CLIENT \
+  --auth-parameters USERNAME=tester@theo.demo,PASSWORD='Throwaway-Pass-123!' --query AuthenticationResult.IdToken --output text)
+
+# 3. Call it
+curl -s -H "Authorization: $TOKEN" $API/device/device-1/status
+curl -s -H "Authorization: $TOKEN" $API/device/device-1/settings
+curl -s -X POST -H "Authorization: $TOKEN" $API/device/device-1/plug-in      # the whole chain fires
+curl -s -H "Authorization: $TOKEN" $API/device/device-1/schedule
+curl -s -H "Authorization: $TOKEN" $API/device/device-1/savings
+curl -s -X PUT -H "Authorization: $TOKEN" -H "Content-Type: application/json" \
+  -d '{"reserve_soc":30,"target_soc":90,"departure_time":"06:45"}' $API/device/device-1/settings   # triggers a re-plan
+curl -s -H "Authorization: $TOKEN" $API/device/device-9/status               # 404: not a known device
+
+# 4. Clean up the throwaway user
+aws cognito-idp admin-delete-user --user-pool-id $POOL --username tester@theo.demo
+```
+The demo user for the browser: `terraform output demo_username`, and the one-time password with
+`terraform output -raw demo_temporary_password`.
+
 ## Troubleshooting
 
 | Error | Meaning |
 |---|---|
 | `AWS Account ID not allowed` | credentials belong to a different account than `var.aws_account_id` |
 | `Backend initialization required` | run `make -C capstone init` |
+| API answers `401` with a token | wrong token type or an expired one (they last 1 hour); log in again |
+| API answers `500` right after `apply` | the Lambda permission for API Gateway has not propagated yet; retry in a minute |
 | `NoSuchBucket` on init | step 2 not done, or the lab was wiped; repeat steps 1 and 2 |
