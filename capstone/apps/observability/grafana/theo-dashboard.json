@@ -1,0 +1,287 @@
+{
+ "uid": "theo-overview",
+ "title": "T.H.E.O. platform",
+ "schemaVersion": 39,
+ "version": 1,
+ "refresh": "15s",
+ "time": {
+  "from": "now-30m",
+  "to": "now"
+ },
+ "tags": [
+  "theo"
+ ],
+ "panels": [
+  {
+   "id": 1,
+   "type": "stat",
+   "title": "Targets up",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "gridPos": {
+    "x": 0,
+    "y": 0,
+    "w": 6,
+    "h": 5
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "expr": "up",
+     "legendFormat": "{{job}}",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     }
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [
+      {
+       "type": "value",
+       "options": {
+        "0": {
+         "text": "DOWN",
+         "color": "red"
+        },
+        "1": {
+         "text": "UP",
+         "color": "green"
+        }
+       }
+      }
+     ],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "red",
+        "value": null
+       },
+       {
+        "color": "green",
+        "value": 1
+       }
+      ]
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "background",
+    "textMode": "value_and_name"
+   }
+  },
+  {
+   "id": 2,
+   "type": "gauge",
+   "title": "Battery per device",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "gridPos": {
+    "x": 6,
+    "y": 0,
+    "w": 10,
+    "h": 5
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "expr": "theo_sim_soc * 100",
+     "legendFormat": "{{device_id}}",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     }
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "percent",
+     "min": 0,
+     "max": 100
+    },
+    "overrides": []
+   }
+  },
+  {
+   "id": 3,
+   "type": "stat",
+   "title": "Optimizer jobs solved",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "gridPos": {
+    "x": 16,
+    "y": 0,
+    "w": 8,
+    "h": 5
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "expr": "sum(theo_optimizer_jobs_total{result=\"ok\"})",
+     "legendFormat": "ok",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     }
+    },
+    {
+     "refId": "B",
+     "expr": "sum(theo_optimizer_jobs_total{result=\"error\"})",
+     "legendFormat": "errors",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     }
+    }
+   ],
+   "options": {
+    "textMode": "value_and_name"
+   }
+  },
+  {
+   "id": 4,
+   "type": "timeseries",
+   "title": "CPU of both boxes (%)",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "gridPos": {
+    "x": 0,
+    "y": 5,
+    "w": 12,
+    "h": 8
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "expr": "100 - (avg by (box) (rate(node_cpu_seconds_total{mode=\"idle\"}[1m])) * 100)",
+     "legendFormat": "{{box}}",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     }
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "percent"
+    },
+    "overrides": []
+   }
+  },
+  {
+   "id": 5,
+   "type": "timeseries",
+   "title": "Simulator messages per second",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "gridPos": {
+    "x": 12,
+    "y": 5,
+    "w": 12,
+    "h": 8
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "expr": "sum by (device_id) (rate(theo_sim_messages_published_total[1m]))",
+     "legendFormat": "{{device_id}}",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     }
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {},
+    "overrides": []
+   }
+  },
+  {
+   "id": 6,
+   "type": "timeseries",
+   "title": "Optimizer solve time (average)",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "gridPos": {
+    "x": 0,
+    "y": 13,
+    "w": 12,
+    "h": 8
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "expr": "rate(theo_optimizer_solve_seconds_sum[5m]) / rate(theo_optimizer_solve_seconds_count[5m])",
+     "legendFormat": "solve time",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     }
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "s"
+    },
+    "overrides": []
+   }
+  },
+  {
+   "id": 7,
+   "type": "timeseries",
+   "title": "Replan queue: oldest message (from CloudWatch)",
+   "datasource": {
+    "type": "cloudwatch",
+    "uid": "cloudwatch"
+   },
+   "gridPos": {
+    "x": 12,
+    "y": 13,
+    "w": 12,
+    "h": 8
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "cloudwatch",
+      "uid": "cloudwatch"
+     },
+     "queryMode": "Metrics",
+     "namespace": "AWS/SQS",
+     "metricName": "ApproximateAgeOfOldestMessage",
+     "dimensions": {
+      "QueueName": "theo-replan-queue"
+     },
+     "statistic": "Maximum",
+     "period": "60",
+     "region": "default",
+     "matchExact": true,
+     "id": "",
+     "label": "oldest message"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "s"
+    },
+    "overrides": []
+   }
+  }
+ ]
+}
