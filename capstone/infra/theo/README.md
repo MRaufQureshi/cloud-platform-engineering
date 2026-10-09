@@ -17,7 +17,7 @@ terraform plan
 
 Or from the repo root: `make -C capstone init plan`.
 
-From CI: **Actions → THEO Infra Run → plan/apply/destroy**.
+From CI: **Actions → T.H.E.O. Infra Run → plan/apply/destroy**.
 Destroy needs the confirmation text `destroy-theo`.
 
 ## Testing Phase 2 (IoT + simulator)
