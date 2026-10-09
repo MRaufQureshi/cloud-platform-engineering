@@ -15,7 +15,7 @@ TF     := terraform -chdir=$(CAPSTONE_DIR)/infra/theo
 OPT_DIR := $(CAPSTONE_DIR)/apps/optimizer
 
 .DEFAULT_GOAL := help
-.PHONY: help check-account prerequisites bootstrap init plan apply destroy seed-optimizer deploy-optimizer optimizer-logs
+.PHONY: help check-account prerequisites bootstrap init plan apply destroy seed-optimizer deploy-optimizer optimizer-logs prices
 
 help: ## show this list
 	@grep -E '^[a-z-]+:.*?## ' $(MAKEFILE_LIST) | awk -F':.*?## ' '{printf "  \033[36m%-14s\033[0m %s\n", $$1, $$2}'
@@ -83,6 +83,12 @@ deploy-optimizer: ## build, push (new tag) and roll out the optimizer by hand
 	aws ecs update-service --cluster theo-cluster --service theo-optimizer-service --task-definition $$REV --region $(REGION) >/dev/null; \
 	aws ecs wait services-stable --cluster theo-cluster --services theo-optimizer-service --region $(REGION); \
 	echo "deployed $$TAG"
+
+# The daily 13:05 UTC schedule runs the same function. A schedule cannot be
+# "run now" from the console, so for a demo you invoke the Lambda directly.
+prices: ## fetch the day-ahead prices now (what the daily schedule does)
+	aws lambda invoke --function-name theo-price-fetcher --region $(REGION) \
+	  --cli-binary-format raw-in-base64-out /dev/stdout
 
 optimizer-logs: ## tail the optimizer's logs
 	aws logs tail /ecs/theo-optimizer --follow --region $(REGION)
