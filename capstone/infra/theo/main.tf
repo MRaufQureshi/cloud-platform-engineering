@@ -7,8 +7,8 @@
 #   Phase 2  module "iot"            module "simulator"
 #   Phase 3  module "optimizer"
 #   Phase 4  module "ingestion"
-#   Phase 5  module "api"                                    <- here
-#   Phase 6  module "frontend"
+#   Phase 5  module "api"
+#   Phase 6  module "frontend"                               <- here
 #   Phase 6b module "landing"
 #   Phase 7  module "observability"  module "security"
 
@@ -102,7 +102,21 @@ module "api" {
   iot_endpoint     = module.iot.iot_endpoint
   device_ids       = module.iot.device_ids
 
-  # Phase 6 adds the CloudFront address here. Until then only a local dev server
-  # (npm run dev) may call the API from a browser.
-  allowed_origins = ["http://localhost:5173"]
+  # Browsers may call the API only from the deployed web app and from a local dev
+  # server (npm run dev).
+  allowed_origins = ["http://localhost:5173", module.frontend.cloudfront_url]
+}
+
+# The web app's private bucket + CloudFront. Its config.json tells the app where
+# the API and the login pool are.
+module "frontend" {
+  source = "./modules/frontend"
+
+  project_name        = var.project_name
+  account_id          = data.aws_caller_identity.current.account_id
+  api_url             = module.api.api_url
+  region              = var.region
+  user_pool_id        = module.api.user_pool_id
+  user_pool_client_id = module.api.client_id
+  device_ids          = module.iot.device_ids
 }
