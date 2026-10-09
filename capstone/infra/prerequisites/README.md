@@ -22,7 +22,7 @@ Settings → Secrets and variables → Actions → Variables):
 | Variable | Role | Used by |
 |---|---|---|
 | `AWS_THEO_ROLE_PLAN` | `github-actions-theo-terraform-plan` (read-only) | pull-request plans |
-| `AWS_THEO_ROLE_APPLY` | `github-actions-theo-terraform-apply` | THEO Infra Run apply/destroy |
+| `AWS_THEO_ROLE_APPLY` | `github-actions-theo-terraform-apply` | T.H.E.O. Infra Run apply/destroy |
 
 ## What it builds
 
