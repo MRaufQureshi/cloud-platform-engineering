@@ -91,12 +91,14 @@ resource "aws_iot_topic_rule" "telemetry" {
 
 # --- Rule A2: latest state per device (the table's key is device_id, so every
 # new reading overwrites the previous one). `updated_at` is SIMULATED time: the
-# optimizer reads it to learn what time it is inside the simulation.
+# optimizer reads it to learn what time it is inside the simulation. `received_ms`
+# is REAL time (milliseconds, IoT Core's own clock): the API uses it to tell
+# whether a device is still online ("last telemetry 4 s ago").
 resource "aws_iot_topic_rule" "device_state" {
   name        = "${var.project_name}_telemetry_to_device_state"
   enabled     = true
   sql_version = "2016-03-23"
-  sql         = "SELECT device_id, soc, plugged_in, ev_power_kw AS power_kw, ts AS updated_at FROM 'theo/+/telemetry'"
+  sql         = "SELECT device_id, soc, plugged_in, ev_power_kw AS power_kw, ts AS updated_at, timestamp() AS received_ms FROM 'theo/+/telemetry'"
 
   dynamodbv2 {
     role_arn = aws_iam_role.rules.arn
