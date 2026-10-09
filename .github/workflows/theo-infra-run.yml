@@ -30,6 +30,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       TF_VAR_my_ip: ${{ secrets.MY_IP }} # a secret: the repository is public
+      TF_VAR_alert_email: ${{ secrets.ALERT_EMAIL }}
     defaults:
       run:
         working-directory: capstone/infra/theo
