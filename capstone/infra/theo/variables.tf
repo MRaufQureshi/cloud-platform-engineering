@@ -39,3 +39,10 @@ variable "my_ip" {
     error_message = "my_ip must be a plain IPv4 address like 203.0.113.7 (no /32, no spaces)."
   }
 }
+
+# Phase 7. Alarm emails go here. Local runs read it from terraform.tfvars (gitignored);
+# CI reads the ALERT_EMAIL repo secret (the repository is public).
+variable "alert_email" {
+  description = "Email address for the alarm notifications"
+  type        = string
+}
