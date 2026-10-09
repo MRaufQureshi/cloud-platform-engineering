@@ -84,18 +84,18 @@ def load_settings(device_id):
 def price_lookup(now):
     """
     A function dt -> ct/kWh. Real prices come from theo-prices (one row per date
-    and hour). Any hour with no row falls back to the typical-day curve, so the
-    optimizer never fails just because prices have not arrived yet.
+    and hour, written by the price fetcher). forecast.build_price_function decides
+    which to use: the exact date if complete, else the newest complete day stored
+    as "latest", else the typical-day curve, so the optimizer never fails just
+    because prices have not arrived yet.
     """
-    found = {}
-    for day in {now.strftime("%Y-%m-%d"), (now.replace(hour=0) + timedelta(days=1)).strftime("%Y-%m-%d")}:
-        for row in table["prices"].query(KeyConditionExpression=Key("date").eq(day))["Items"]:
-            found[(day, row["hour"])] = float(row["price_ct_kwh"])
 
-    def price_ct(dt):
-        return found.get((dt.strftime("%Y-%m-%d"), dt.strftime("%H")), forecast.fallback_price_ct(dt))
+    def hours_of(day):
+        rows = table["prices"].query(KeyConditionExpression=Key("date").eq(day))["Items"]
+        return {row["hour"]: float(row["price_ct_kwh"]) for row in rows}
 
-    return price_ct
+    days = {now.strftime("%Y-%m-%d"), (now.replace(hour=0) + timedelta(days=1)).strftime("%Y-%m-%d")}
+    return forecast.build_price_function({day: hours_of(day) for day in days}, hours_of("latest"))
 
 
 def clear_schedule(device_id):
