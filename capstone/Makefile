@@ -15,7 +15,7 @@ TF     := terraform -chdir=$(CAPSTONE_DIR)/infra/theo
 OPT_DIR := $(CAPSTONE_DIR)/apps/optimizer
 
 .DEFAULT_GOAL := help
-.PHONY: help check-account prerequisites bootstrap init plan apply destroy seed-optimizer deploy-optimizer optimizer-logs prices deploy-frontend frontend-config
+.PHONY: help check-account prerequisites bootstrap init plan apply destroy seed-optimizer deploy-optimizer optimizer-logs prices frontend-config
 
 help: ## show this list
 	@grep -E '^[a-z-]+:.*?## ' $(MAKEFILE_LIST) | awk -F':.*?## ' '{printf "  \033[36m%-14s\033[0m %s\n", $$1, $$2}'
@@ -89,9 +89,6 @@ deploy-optimizer: ## build, push (new tag) and roll out the optimizer by hand
 prices: ## fetch the day-ahead prices now (what the daily schedule does)
 	aws lambda invoke --function-name theo-price-fetcher --region $(REGION) \
 	  --cli-binary-format raw-in-base64-out /dev/stdout
-
-deploy-frontend: ## build the web app and publish it (S3 + CloudFront)
-	$(CAPSTONE_DIR)/apps/frontend/deploy-frontend.sh
 
 # For `npm run dev`: copy the live config.json (API address, login IDs) next to the source.
 frontend-config: ## download config.json for local development
