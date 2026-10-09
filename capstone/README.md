@@ -90,7 +90,7 @@ has not run yet at 9:00). To bring the demo back, in this order:
 | 4 | Put the optimizer image back (only if the ECR repo was wiped) | `make -C capstone seed-optimizer` | an empty repository cannot start the task |
 | 5 | Fetch prices (optional) | `make -C capstone prices` | the daily schedule only fires at 13:05 UTC; without prices the optimizer uses a typical day |
 | 6 | Get the demo login | `cd capstone/infra/theo && terraform output demo_username && terraform output -raw demo_temporary_password` | a wipe recreates the login pool, so the demo user and its one-time password are NEW every rebuild |
-| 7 | Put the web app back (the bucket is recreated empty) | `make -C capstone deploy-frontend` | `apply` rebuilds the bucket, CloudFront and `config.json`, but not the app files |
+| 7 | Put the web app back (the bucket is recreated empty) | **Actions → T.H.E.O. App Deploy → Run workflow** | `apply` rebuilds the bucket, CloudFront and `config.json`, but not the app files |
 | 8 | Open the app | `cd capstone/infra/theo && terraform output -raw app_url` | the address changes after every rebuild |
 | 9 | Wait ~3 minutes, then plug a car in (or press PLUG IN in the app) | `aws iot-data publish --topic theo/device-1/control --cli-binary-format raw-in-base64-out --payload '{"cmd":"plug_in"}'` | the simulator box needs that long to boot |
 
