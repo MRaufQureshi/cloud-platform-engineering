@@ -49,7 +49,7 @@ output "simulator_instance_id" {
 
 # --- Phase 3
 output "ecr_repository_url" {
-  description = "Push the optimizer image here (make seed-optimizer)"
+  description = "Push the optimizer image here (T.H.E.O. App Deploy does it)"
   value       = module.optimizer.ecr_repository_url
 }
 
