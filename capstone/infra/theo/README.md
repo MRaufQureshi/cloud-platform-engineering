@@ -51,7 +51,7 @@ If rows do not appear, check the rule error log group: `aws logs tail /theo/iot-
 
 ```bash
 make -C capstone apply            # creates the queue, ECR repo, cluster, service (the task cannot start yet: no image)
-make -C capstone seed-optimizer   # build + push :bootstrap, restart the service, wait until stable
+# then: Actions -> T.H.E.O. App Deploy -> Run workflow (builds + pushes the image, rolls out the service)
 
 # the whole chain: plug in -> event -> SQS -> optimizer -> schedule -> device
 aws iot-data publish --topic theo/device-2/control --cli-binary-format raw-in-base64-out --payload '{"cmd":"plug_in"}'
@@ -81,7 +81,7 @@ aws events describe-rule --name theo-daily-prices --query ScheduleExpression
 ```
 Before 13:00 UTC aWATTar returns only part of a day, so `latest` is not written; that is
 intended. After the first 13:05 run, `latest` holds a complete day.
-Redeploy the optimizer after this phase (`make -C capstone deploy-optimizer`, or merge to `main`): it now prefers real prices.
+Redeploy the optimizer after this phase (run **T.H.E.O. App Deploy**, or merge to `main`): it now prefers real prices.
 
 ## Testing Phase 5 (login + API)
 

@@ -50,7 +50,7 @@ python3 -m venv .venv && .venv/bin/pip install -r requirements-dev.txt
 `solver`: HiGHS through PuLP. PuLP is pinned to 3.x (4.0 changed its API).
 
 ## Deploy
-First time: `make -C capstone seed-optimizer` (builds and pushes `:bootstrap`).
+First time, or after a wipe: **Actions → T.H.E.O. App Deploy → Run workflow**.
 After that the **T.H.E.O. App Deploy** workflow builds, pushes (tagged with the commit
 SHA) and rolls out on every merge to `main` that touches this folder.
 Logs: `make -C capstone optimizer-logs`.
