@@ -12,10 +12,9 @@ REGION       := us-east-1
 PREREQ := terraform -chdir=$(CAPSTONE_DIR)/infra/prerequisites
 BOOT   := terraform -chdir=$(CAPSTONE_DIR)/infra/bootstrap
 TF     := terraform -chdir=$(CAPSTONE_DIR)/infra/theo
-OPT_DIR := $(CAPSTONE_DIR)/apps/optimizer
 
 .DEFAULT_GOAL := help
-.PHONY: help check-account prerequisites bootstrap init plan apply destroy seed-optimizer deploy-optimizer optimizer-logs prices frontend-config
+.PHONY: help check-account prerequisites bootstrap init plan apply destroy optimizer-logs prices frontend-config
 
 help: ## show this list
 	@grep -E '^[a-z-]+:.*?## ' $(MAKEFILE_LIST) | awk -F':.*?## ' '{printf "  \033[36m%-14s\033[0m %s\n", $$1, $$2}'
@@ -47,42 +46,6 @@ apply: ## build or update THEO
 
 destroy: ## tear everything down
 	$(TF) destroy
-
-# ---------------------------------------------------------------------------
-# FIRST APPLY ONLY (Phase 3).
-#
-# Terraform creates an EMPTY ECR repository and, in the same apply, a service
-# whose task definition points at an image inside it. Nothing has been pushed
-# yet, so the task cannot start until one is. This builds the first image and
-# tells the service to try again. After that, CI (theo-app-deploy.yml) pushes
-# every new version. Same chicken-and-egg as infra/ecs-fargate's `seed`.
-# ---------------------------------------------------------------------------
-seed-optimizer: ## build and push the :bootstrap optimizer image, then restart the service
-	@ECR=$$($(TF) output -raw ecr_repository_url); \
-	aws ecr get-login-password --region $(REGION) \
-	  | docker login --username AWS --password-stdin $${ECR%%/*}; \
-	cd $(OPT_DIR) && \
-	docker build --platform linux/amd64 --provenance=false -t $$ECR:bootstrap . && \
-	docker push $$ECR:bootstrap
-	aws ecs update-service --cluster theo-cluster --service theo-optimizer-service \
-	  --force-new-deployment --region $(REGION) >/dev/null
-	aws ecs wait services-stable --cluster theo-cluster --services theo-optimizer-service --region $(REGION)
-	@echo "optimizer is running"
-
-# Same steps as the T.H.E.O. App Deploy workflow, for before CI is set up. Every push
-# needs a NEW tag because the ECR repository is IMMUTABLE (a tag cannot be reused).
-deploy-optimizer: ## build, push (new tag) and roll out the optimizer by hand
-	@set -e; TAG=$$(date +%Y%m%d%H%M%S); \
-	ECR=$$($(TF) output -raw ecr_repository_url); \
-	aws ecr get-login-password --region $(REGION) | docker login --username AWS --password-stdin $${ECR%%/*}; \
-	( cd $(OPT_DIR) && docker build --platform linux/amd64 --provenance=false -t $$ECR:$$TAG . && docker push $$ECR:$$TAG ); \
-	aws ecs describe-task-definition --task-definition theo-optimizer --region $(REGION) --query taskDefinition \
-	  | jq --arg img "$$ECR:$$TAG" 'del(.taskDefinitionArn,.revision,.status,.requiresAttributes,.compatibilities,.registeredAt,.registeredBy) | .containerDefinitions[0].image=$$img | with_entries(select(.value != null))' \
-	  > /tmp/theo-taskdef.json; \
-	REV=$$(aws ecs register-task-definition --cli-input-json file:///tmp/theo-taskdef.json --region $(REGION) --query taskDefinition.taskDefinitionArn --output text); \
-	aws ecs update-service --cluster theo-cluster --service theo-optimizer-service --task-definition $$REV --region $(REGION) >/dev/null; \
-	aws ecs wait services-stable --cluster theo-cluster --services theo-optimizer-service --region $(REGION); \
-	echo "deployed $$TAG"
 
 # The daily 13:05 UTC schedule runs the same function. A schedule cannot be
 # "run now" from the console, so for a demo you invoke the Lambda directly.
