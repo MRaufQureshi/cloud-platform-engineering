@@ -84,6 +84,9 @@ It is a secret, not a Variable, because this repository is public: a Variable ca
 be read by anyone, and the IP is personal. It is the only address allowed to open
 Grafana. Your ISP rotates it, so update it when it changes.
 
+The Grafana address (`grafana_url`) is listed with the other outputs: in the **Outputs** step of a
+**T.H.E.O. Infra Run** with `apply`, or with `terraform output -raw grafana_url`.
+
 These are deliberately separate from `AWS_ROLE_LAB` / `TF_STATE_BUCKET_LAB`, which
 belong to `core`, `scaling` and `rds`. The two sets never overlap.
 
