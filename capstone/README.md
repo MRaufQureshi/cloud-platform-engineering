@@ -87,7 +87,7 @@ has not run yet at 9:00). To bring the demo back, in this order:
 | 1 | Check which account you are in | `make -C capstone check-account` | must print the lab account |
 | 2 | See what is missing | `make -C capstone plan` | a wipe shows as "has been deleted" + additions, no destroys |
 | 3 | Rebuild | `make -C capstone apply` (or **Actions → T.H.E.O. Infra Run → apply**) | ~10 min, mostly the NAT gateway |
-| 4 | Put the optimizer image back (only if the ECR repo was wiped) | `make -C capstone seed-optimizer` | an empty repository cannot start the task |
+| 4 | Put the optimizer image back (only if the ECR repo was wiped) | **Actions → T.H.E.O. App Deploy → Run workflow** | an empty repository cannot start the task |
 | 5 | Fetch prices (optional) | `make -C capstone prices` | the daily schedule only fires at 13:05 UTC; without prices the optimizer uses a typical day |
 | 6 | Get the demo login | `cd capstone/infra/theo && terraform output demo_username && terraform output -raw demo_temporary_password` | a wipe recreates the login pool, so the demo user and its one-time password are NEW every rebuild |
 | 7 | Put the web app back (the bucket is recreated empty) | **Actions → T.H.E.O. App Deploy → Run workflow** | `apply` rebuilds the bucket, CloudFront and `config.json`, but not the app files |
