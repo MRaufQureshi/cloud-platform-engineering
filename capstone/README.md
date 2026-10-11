@@ -121,7 +121,7 @@ capstone/
 | 4 | prices (EventBridge + Lambda) + forecast stub | done (12 resources) |
 | 5 | API + auth (Cognito, API Gateway JWT, API Lambda) | done (22 resources) |
 | 6 | frontend (React on a private S3 bucket + CloudFront) | done (7 resources) |
-| 6b | landing page: ECS Fargate (private subnets) behind an ALB, HTTP, with an "Optimizer" button to the React login | |
+| 6b | landing website: private S3 bucket + CloudFront (HTTPS); its "Simulator" button opens the web app | done |
 | 7 | observability + security (Prometheus, Grafana, alarms, CloudTrail, Inspector) | done (25 resources + 1 changed) |
 | 8 | demo polish + destroy rehearsal | |
 
