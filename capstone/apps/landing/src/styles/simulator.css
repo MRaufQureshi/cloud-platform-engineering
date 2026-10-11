@@ -1,0 +1,332 @@
+/* Savings simulator */
+
+.sim {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: var(--s-3);
+  align-items: start;
+  margin-top: var(--s-6);
+}
+
+.sim-controls,
+.sim-results {
+  padding: var(--s-3);
+  border-radius: var(--r-card);
+  border: 1px solid var(--border);
+  background: rgb(10 15 26 / 0.84);
+  backdrop-filter: blur(18px) saturate(130%);
+}
+
+.sim-controls {
+  display: grid;
+  gap: var(--s-3);
+  align-content: start;
+}
+@media (min-width: 961px) {
+  /* The inputs stay in view while the taller results scroll past. */
+  .sim-controls {
+    position: sticky;
+    top: 96px;
+  }
+}
+
+.sim-controls fieldset {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.sim-controls legend,
+.slider-top {
+  font: 600 var(--fs-label) / 1 var(--font-mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  padding: 0;
+  margin-bottom: 10px;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip {
+  position: relative;
+}
+.chip input {
+  position: absolute;
+  opacity: 0;
+  inset: 0;
+  margin: 0;
+}
+.chip span {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 2px;
+  min-height: 44px;
+  justify-content: center;
+  padding: 8px 14px;
+  border-radius: var(--r-control);
+  border: 1px solid var(--line-strong);
+  background: rgb(255 255 255 / 0.02);
+  font-size: 0.88rem;
+  font-weight: 600;
+  line-height: 1.15;
+  transition: border-color var(--dur-fast), background var(--dur-fast), color var(--dur-fast);
+}
+.chip small {
+  font: 500 0.7rem/1 var(--font-mono);
+  color: var(--text-dim);
+}
+.chip:hover span {
+  border-color: rgb(94 234 212 / 0.5);
+}
+.chip input:checked + span {
+  border-color: var(--primary);
+  background: rgb(45 212 191 / 0.12);
+  color: #fff;
+}
+.chip input:focus-visible + span {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.chips-sm .chip span {
+  min-height: 32px;
+  padding: 4px 10px;
+  font-size: 0.78rem;
+}
+
+.sim-sliders {
+  display: grid;
+  gap: var(--s-2);
+}
+.slider {
+  display: grid;
+  gap: 4px;
+}
+.slider-top {
+  display: flex;
+  justify-content: space-between;
+}
+.slider-top label {
+  cursor: pointer;
+}
+.slider output {
+  color: #fff;
+  letter-spacing: 0;
+}
+
+input[type='range'] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 28px;
+  background: transparent;
+  cursor: pointer;
+}
+input[type='range']::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, var(--primary), rgb(255 255 255 / 0.12));
+}
+input[type='range']::-moz-range-track {
+  height: 4px;
+  border-radius: 4px;
+  background: rgb(255 255 255 / 0.12);
+}
+input[type='range']::-moz-range-progress {
+  height: 4px;
+  border-radius: 4px;
+  background: var(--primary);
+}
+input[type='range']::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 20px;
+  height: 20px;
+  margin-top: -8px;
+  border-radius: 50%;
+  background: #fff;
+  border: 3px solid var(--primary);
+  box-shadow: 0 0 0 6px rgb(45 212 191 / 0.15);
+}
+input[type='range']::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  border: 3px solid var(--primary);
+}
+
+.sim-results {
+  display: grid;
+  gap: var(--s-3);
+}
+.sim-total p {
+  margin: 0;
+}
+.sim-big {
+  font: 600 clamp(3.2rem, 6vw, 5.2rem) / 1 var(--font-display);
+  letter-spacing: -0.055em;
+  margin-top: 6px !important;
+}
+.sim-total .sim-caveat {
+  margin: 10px 0 0;
+  font: 600 var(--fs-label) / 1.45 var(--font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+.sim-split {
+  margin-top: var(--s-2);
+}
+.sim-notes {
+  display: grid;
+  gap: 6px;
+  margin-top: 14px;
+}
+.sim-total .sim-notes p {
+  font-size: 0.8rem;
+  line-height: 1.45;
+  color: var(--text-dim);
+}
+/* While the yearly figures are being solved the old numbers stay, slightly dimmed. */
+.sim-results[data-stale] .sim-big,
+.sim-results[data-stale] .sim-split,
+.sim-results[data-stale] .sim-bars {
+  opacity: 0.55;
+}
+.sim-big,
+.sim-split,
+.sim-bars {
+  transition: opacity 0.2s var(--ease-out);
+}
+.sim-split-bar {
+  display: flex;
+  height: 8px;
+  border-radius: var(--r-pill);
+  overflow: hidden;
+  background: rgb(255 255 255 / 0.08);
+}
+.seg {
+  display: block;
+  height: 100%;
+  transition: width 0.6s var(--ease-out);
+}
+.seg-smart {
+  background: var(--grid);
+}
+.seg-v2h {
+  background: var(--primary);
+}
+.sim-split dl {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin: 12px 0 0;
+}
+.sim-split dt {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+  color: var(--text-dim);
+}
+.sim-split dd {
+  margin: 4px 0 0;
+  font: 600 1.35rem/1 var(--font-mono);
+  letter-spacing: -0.03em;
+}
+
+.sim-day-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.sim-day-head p {
+  margin: 0;
+}
+.sim-chart {
+  width: 100%;
+  height: 170px;
+  margin-top: 12px;
+}
+.sim-axis {
+  display: flex;
+  justify-content: space-between;
+  font: 600 0.62rem/1 var(--font-mono);
+  color: #9ca3af;
+}
+.sim-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.78rem;
+  color: var(--text-dim);
+}
+.sim-legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.legend-line {
+  width: 16px;
+  border-top: 1.5px dashed rgb(255 255 255 / 0.6);
+}
+
+.sim-months p {
+  margin: 0 0 10px;
+}
+.sim-bars {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 6px;
+  height: 90px;
+  align-items: end;
+}
+.sim-bar {
+  display: grid;
+  grid-template-rows: 1fr auto;
+  height: 100%;
+  gap: 4px;
+  text-align: center;
+}
+.sim-bar span {
+  align-self: end;
+  height: calc(var(--h) * 100%);
+  border-radius: 4px 4px 1px 1px;
+  background: linear-gradient(180deg, var(--accent), rgb(45 212 191 / 0.35));
+  transition: height 0.6s var(--ease-out);
+}
+.sim-bar small {
+  font: 600 0.62rem/1 var(--font-mono);
+  color: #9ca3af;
+}
+
+@media (max-width: 960px) {
+  .sim {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Forced-colours (Windows contrast themes) drop background tints: show the selection explicitly. */
+@media (forced-colors: active) {
+  .chip input:checked + span,
+  .hud-toggle button[aria-pressed='true'] {
+    forced-color-adjust: none;
+    background: Highlight;
+    color: HighlightText;
+    border: 2px solid Highlight;
+  }
+  input[type='range']::-webkit-slider-runnable-track {
+    background: CanvasText;
+  }
+}

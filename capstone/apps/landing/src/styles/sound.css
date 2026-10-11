@@ -1,0 +1,300 @@
+/* Sound toggle for the top bar: a round icon button with a four-bar CSS equaliser. Off, the
+   bars lie flat; 'armed' (sound was on last visit and is waiting for a click), they stand
+   still while a teal ring pulses; they only dance while sound is actually playing. */
+
+/* Placement: wrap the toggle and the top-bar CTA so the bar keeps its three-part layout. */
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.sound-toggle {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-pill);
+  background: rgb(255 255 255 / 0.02);
+  backdrop-filter: blur(8px);
+  color: var(--text-dim);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    color var(--dur) var(--ease-out),
+    background var(--dur) var(--ease-out),
+    border-color var(--dur) var(--ease-out),
+    box-shadow var(--dur) var(--ease-out);
+}
+.sound-toggle[hidden] {
+  display: none;
+}
+.sound-toggle:hover {
+  color: var(--text);
+  border-color: rgb(94 234 212 / 0.6);
+  background: rgb(94 234 212 / 0.08);
+}
+/* The global focus ring squares corners off; keep this one round. */
+.sound-toggle:focus-visible {
+  border-radius: var(--r-pill);
+}
+.sound-toggle[data-state='armed'] {
+  color: var(--text);
+}
+.sound-toggle[data-state='on'] {
+  color: var(--primary);
+  border-color: rgb(45 212 191 / 0.5);
+  background: rgb(45 212 191 / 0.08);
+  box-shadow: 0 8px 28px -10px rgb(45 212 191 / 0.7);
+}
+
+/* Equaliser: four 2px bars scaled from their centre. */
+.sound-eq {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  height: 14px;
+}
+.sound-eq i {
+  width: 2px;
+  height: 100%;
+  border-radius: 1px;
+  background: currentColor;
+  transform: scaleY(0.15);
+  transition: transform var(--dur) var(--ease-out);
+}
+.sound-eq i:nth-child(1) {
+  --h: 0.45;
+}
+.sound-eq i:nth-child(2) {
+  --h: 0.85;
+}
+.sound-eq i:nth-child(3) {
+  --h: 0.6;
+}
+.sound-eq i:nth-child(4) {
+  --h: 0.35;
+}
+.sound-toggle:is([data-state='armed'], [data-state='on']) .sound-eq i {
+  transform: scaleY(var(--h));
+}
+.sound-toggle[data-state='on'] .sound-eq i {
+  animation: sound-eq 1.1s ease-in-out infinite alternate;
+}
+.sound-toggle[data-state='on'] .sound-eq i:nth-child(2) {
+  animation-duration: 0.84s;
+  animation-delay: -0.3s;
+}
+.sound-toggle[data-state='on'] .sound-eq i:nth-child(3) {
+  animation-duration: 1.32s;
+  animation-delay: -0.7s;
+}
+.sound-toggle[data-state='on'] .sound-eq i:nth-child(4) {
+  animation-duration: 0.96s;
+  animation-delay: -0.45s;
+}
+
+@keyframes sound-eq {
+  0% {
+    transform: scaleY(0.25);
+  }
+  25% {
+    transform: scaleY(0.9);
+  }
+  50% {
+    transform: scaleY(0.4);
+  }
+  75% {
+    transform: scaleY(1);
+  }
+  100% {
+    transform: scaleY(0.3);
+  }
+}
+
+/* Armed: a ring that keeps rippling outwards until the click. */
+.sound-toggle::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border: 1px solid var(--primary);
+  border-radius: inherit;
+  opacity: 0;
+  pointer-events: none;
+}
+.sound-toggle[data-state='armed']::before {
+  opacity: 0.5;
+  animation: sound-armed 2.4s var(--ease-out) infinite;
+}
+
+@keyframes sound-armed {
+  from {
+    opacity: 0.8;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.5);
+  }
+}
+
+/* Tooltip (state in mono caps), below the button. */
+.sound-toggle::after {
+  content: attr(data-tip);
+  position: absolute;
+  top: calc(100% + 14px);
+  left: 50%;
+  translate: -50% -4px;
+  padding: 6px 10px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-pill);
+  background: rgb(8 12 22 / 0.82);
+  backdrop-filter: blur(8px);
+  color: var(--text-dim);
+  font: 600 0.62rem/1 var(--font-mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity var(--dur-fast),
+    translate var(--dur) var(--ease-out);
+}
+.sound-toggle:focus-visible::after {
+  opacity: 1;
+  translate: -50% 0;
+}
+@media (hover: hover) {
+  .sound-toggle:hover::after {
+    opacity: 1;
+    translate: -50% 0;
+  }
+}
+
+/* Reduced motion: no dancing, no ripple; the static bar heights and a still ring remain. */
+@media (prefers-reduced-motion: reduce) {
+  :root:not(.motion-full) .sound-toggle .sound-eq i,
+  :root:not(.motion-full) .sound-toggle[data-state]::before {
+    animation: none !important;
+  }
+}
+.reduced-motion .sound-toggle .sound-eq i,
+.reduced-motion .sound-toggle[data-state]::before {
+  animation: none;
+}
+
+/* Speaker glyph + equaliser side by side, so the control reads as sound, not "more". */
+.sound-toggle {
+  grid-auto-flow: column;
+  gap: 4px;
+  width: auto;
+  padding: 0 12px;
+}
+.sound-icon {
+  width: 14px;
+  height: 14px;
+}
+
+/* Motion toggle shares the sound toggle's look. */
+.motion-toggle .motion-icon {
+  width: 14px;
+  height: 14px;
+}
+.motion-toggle[data-state='paused'] {
+  color: var(--accent);
+  border-color: rgb(94 234 212 / 0.5);
+}
+
+/* Reduced motion, not yet opted in: the button invites a click, and a note under the bar says why the page is still. */
+.motion-toggle.is-invite {
+  color: var(--text);
+  border-color: rgb(94 234 212 / 0.65);
+  background: rgb(45 212 191 / 0.14);
+}
+/* The note replaces the tooltip while it is on screen. */
+.motion-toggle.has-note::after {
+  display: none;
+}
+/* One soft glow, twice, once the loader has gone: a colour fade, no movement. It plays although the device asks
+   for less motion, so it overrides the global neutraliser (base.css). */
+.motion-toggle.is-pulse {
+  animation: motion-invite 2.2s ease-in-out 2;
+}
+:root .motion-toggle.is-pulse {
+  animation-duration: 2.2s !important;
+  animation-iteration-count: 2 !important;
+}
+@keyframes motion-invite {
+  0%,
+  100% {
+    box-shadow: 0 0 0 3px rgb(94 234 212 / 0);
+  }
+  50% {
+    box-shadow:
+      0 0 0 3px rgb(94 234 212 / 0.42),
+      0 0 24px 2px rgb(45 212 191 / 0.4);
+  }
+}
+
+.motion-note {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: var(--gutter);
+  display: grid;
+  gap: 2px;
+  max-width: min(21rem, calc(100vw - 2 * var(--gutter)));
+  padding: 10px 14px 11px;
+  border: 1px solid rgb(94 234 212 / 0.4);
+  border-radius: var(--r-card);
+  background: rgb(10 15 26 / 0.92);
+  box-shadow: 0 18px 44px -24px rgb(0 0 0 / 0.9);
+  /* Explicit colours: a host page that styles body must not change them. */
+  color: #b4bcc8;
+  font: 500 0.8125rem/1.45 var(--font-body);
+  text-align: left;
+  transition:
+    opacity var(--dur) var(--ease-out),
+    translate var(--dur) var(--ease-out),
+    visibility 0s linear 0s;
+}
+/* Phones: from gutter to gutter. */
+@media (max-width: 520px) {
+  .motion-note {
+    left: var(--gutter);
+    max-width: none;
+  }
+}
+.motion-note strong {
+  color: #fff;
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+.motion-note span {
+  text-wrap: balance; /* no lone word on the second line */
+}
+.motion-note[data-mode='invite'] {
+  cursor: pointer;
+}
+.motion-note:not([data-mode='invite']) {
+  pointer-events: none;
+}
+/* Out of the way once the visitor has scrolled past the hero, or the message has been read. */
+.motion-note.is-away,
+.motion-note.is-gone {
+  opacity: 0;
+  visibility: hidden;
+  translate: 0 -6px;
+  pointer-events: none;
+  transition-delay: 0s, 0s, var(--dur);
+}
+@media (pointer: coarse) {
+  .sound-toggle {
+    height: 44px;
+    min-width: 44px;
+  }
+}

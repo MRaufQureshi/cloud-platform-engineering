@@ -1,0 +1,290 @@
+/* Day-chapter HUD and 3D-anchored scene labels */
+
+.day-hud {
+  position: absolute;
+  right: calc(var(--gutter) + 40px);
+  bottom: clamp(28px, 5vh, 56px);
+  width: min(440px, calc(100vw - 2 * var(--gutter)));
+  opacity: 0;
+  translate: 0 16px;
+  transition: opacity 0.6s var(--ease-out), translate 0.6s var(--ease-out);
+}
+.day-hud.is-on {
+  opacity: 1;
+  translate: 0 0;
+}
+.hud-panel {
+  padding: 20px 22px 18px;
+  border-radius: var(--r-card);
+  border: 1px solid var(--border);
+  background: rgb(10 15 26 / 0.72);
+  backdrop-filter: blur(18px) saturate(140%);
+  box-shadow: 0 30px 80px -30px rgb(0 0 0 / 0.7);
+}
+.hud-clock {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  font: 600 3.1rem/1 var(--font-mono);
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
+}
+.hud-sub {
+  font: 600 0.72rem/1 var(--font-mono);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+.hud-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin: 16px 0 0;
+}
+.hud-metrics div {
+  display: grid;
+  gap: 4px;
+}
+.hud-metrics dt {
+  font: 600 0.62rem/1 var(--font-mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+.hud-metrics dd {
+  margin: 0;
+  font: 600 1.25rem/1 var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.03em;
+}
+.hud-metrics small {
+  font-size: 0.6rem;
+  color: var(--text-dim);
+  margin-left: 3px;
+  letter-spacing: 0;
+}
+.hud-bar {
+  display: block;
+  height: 3px;
+  margin-top: 6px;
+  border-radius: 3px;
+  background: rgb(255 255 255 / 0.1);
+  overflow: hidden;
+}
+.hud-bar span {
+  display: block;
+  height: 100%;
+  background: var(--primary);
+  box-shadow: 0 0 10px var(--primary);
+  transition: width 0.3s var(--ease-out);
+}
+.hud-action {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 16px 0 0;
+  padding: 10px 12px;
+  border-radius: var(--r-control);
+  background: rgb(255 255 255 / 0.04);
+  font-size: 0.92rem;
+}
+.hud-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex: none;
+  box-shadow: 0 0 10px currentColor;
+}
+.hud-ribbon {
+  margin-top: 14px;
+}
+.hud-ribbon svg {
+  width: 100%;
+  height: 56px;
+}
+.hud-ribbon-axis {
+  display: flex;
+  justify-content: space-between;
+  font: 600 0.6rem/1 var(--font-mono);
+  color: #9ca3af;
+}
+.hud-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  margin: 12px 0 0;
+  padding: 10px 0 0;
+  list-style: none;
+  border-top: 1px solid var(--line);
+  font-size: 0.75rem;
+  color: var(--text-dim);
+}
+.hud-legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.hud-ribbon-label {
+  margin: 0 0 4px;
+  font: 600 0.6rem/1 var(--font-mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #9ca3af;
+}
+
+.scene-labels {
+  opacity: 0;
+  transition: opacity 0.6s var(--ease-out);
+}
+.scene-labels.is-on {
+  opacity: 1;
+}
+.scene-label {
+  position: absolute;
+  left: 0;
+  top: 0;
+  margin: -34px 0 0 14px;
+  padding: 5px 9px;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--line-strong);
+  background: rgb(8 12 22 / 0.7);
+  backdrop-filter: blur(8px);
+  font: 600 0.62rem/1 var(--font-mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  transition: opacity 0.3s;
+}
+.scene-label-pv {
+  color: var(--solar);
+}
+.scene-label-car {
+  color: var(--primary);
+}
+.scene-label-grid {
+  color: var(--grid);
+}
+
+@media (max-width: 960px) {
+  .day-hud {
+    right: var(--gutter);
+    bottom: 64px;
+  }
+  .day-captions {
+    bottom: auto;
+    top: 46vh;
+  }
+  .hud-clock {
+    font-size: 2.2rem;
+  }
+  .hud-ribbon,
+  .hud-legend {
+    display: none;
+  }
+}
+
+/* Phones: a compact strip (clock, price, car, action, net cost) so the car stays visible. */
+@media (max-width: 640px) {
+  .day-hud {
+    left: var(--gutter);
+    right: var(--gutter);
+    width: auto;
+    bottom: calc(52px + env(safe-area-inset-bottom, 0px));
+  }
+  .hud-panel {
+    padding: 12px 14px;
+  }
+  .hud-toggle {
+    margin-bottom: 8px;
+  }
+  .hud-clock {
+    font-size: 1.6rem;
+  }
+  .hud-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin-top: 8px;
+  }
+  .hud-metrics .hud-opt {
+    display: none;
+  }
+  .hud-action {
+    margin-top: 8px;
+    padding: 8px 10px;
+    font-size: 0.85rem;
+  }
+  .hud-bill {
+    margin-top: 8px;
+  }
+  .hud-bill-other {
+    display: none;
+  }
+  .day-captions {
+    top: calc(76px + env(safe-area-inset-top, 0px));
+    bottom: auto;
+  }
+  .day-note {
+    bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+    right: var(--gutter);
+    font-size: 0.7rem;
+  }
+}
+@media (pointer: coarse) {
+  .hud-toggle button {
+    min-height: 44px;
+  }
+}
+
+.day-hud {
+  pointer-events: auto;
+}
+.hud-toggle {
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  margin-bottom: 14px;
+  border-radius: var(--r-pill);
+  background: rgb(255 255 255 / 0.05);
+  border: 1px solid var(--line);
+}
+.hud-toggle button {
+  min-height: 32px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: var(--r-pill);
+  background: transparent;
+  color: var(--text-dim);
+  font: 600 0.78rem/1 var(--font-body);
+  cursor: pointer;
+  transition: background var(--dur-fast), color var(--dur-fast);
+}
+.hud-toggle button[aria-pressed='true'] {
+  background: var(--primary);
+  color: #032420;
+}
+.day-hud.is-baseline .hud-toggle button[aria-pressed='true'] {
+  background: var(--grid);
+  color: #0b0f1d;
+}
+.hud-bill {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+  margin: 12px 0 0;
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+.hud-bill-other {
+  margin: 4px 0 0;
+  text-align: right;
+  font-size: 0.75rem;
+  white-space: nowrap;
+}
+.hud-bill strong {
+  font: 600 1.1rem/1 var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  color: #fff;
+}
+.hud-bill .dim {
+  font-size: 0.78rem;
+}
