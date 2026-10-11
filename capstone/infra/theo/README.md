@@ -142,7 +142,7 @@ Dashboard fill in.
 ```bash
 make -C capstone apply
 cd capstone/infra/theo
-terraform output -raw grafana_url                       # http://<ip>:3000
+terraform output -raw grafana_url                       # http://<load balancer name>
 aws secretsmanager get-secret-value --secret-id theo/grafana-admin-password --query SecretString --output text
 ```
 - **Email:** click the confirmation link AWS sends to `alert_email`.
