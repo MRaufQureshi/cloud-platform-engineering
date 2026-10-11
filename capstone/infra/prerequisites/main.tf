@@ -106,6 +106,23 @@ resource "aws_iam_role_policy_attachment" "plan_readonly" {
 # ReadOnlyAccess can read the state file, but `terraform init` on a fresh
 # runner still wants to be sure the bucket answers. Nothing here writes.
 
+# ReadOnlyAccess cannot read a secret's VALUE. Terraform manages the Grafana
+# password, so every plan reads it back to compare. Only this one secret, nothing
+# else. (The password is also in the state file, which this role can already read.)
+resource "aws_iam_role_policy" "plan_read_grafana_secret" {
+  name = "read-grafana-secret"
+  role = aws_iam_role.plan.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect   = "Allow"
+      Action   = ["secretsmanager:GetSecretValue"]
+      Resource = "arn:aws:secretsmanager:${var.region}:${var.aws_account_id}:secret:theo/grafana-admin-password-*"
+    }]
+  })
+}
+
 # --------------------------------------------------------------------------
 # 3. APPLY role - main branch only (push, or the manual "T.H.E.O. Infra Run" button
 # started from main). Pull requests can NEVER assume it.
