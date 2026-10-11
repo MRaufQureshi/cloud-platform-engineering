@@ -142,11 +142,15 @@ jobs:
 
       # -lock=false because the plan role is read-only and taking a lock is a
       # write. Safe for plan. Never do this for apply.
+      # shell: bash turns on pipefail, so a failed plan fails the job instead of
+      # being hidden by `tee`. 2>&1 puts the error text in plan.txt too.
       - name: Plan
-        run: terraform plan -input=false -lock=false -no-color | tee plan.txt
+        shell: bash
+        run: terraform plan -input=false -lock=false -no-color 2>&1 | tee plan.txt
 
       # The repo is PUBLIC: the comment hides the IP and the account number, and drops the refresh noise.
       - name: Comment the plan on the PR
+        if: always() # also when the plan failed, so the error shows on the PR
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
