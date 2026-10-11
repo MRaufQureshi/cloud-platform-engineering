@@ -9,6 +9,11 @@
     enabled: true
     state: started
 
+- name: Folder for the Compose plugin
+  ansible.builtin.file:
+    path: /usr/local/lib/docker/cli-plugins
+    state: directory
+
 - name: Docker Compose plugin
   ansible.builtin.get_url:
     url: "https://github.com/docker/compose/releases/download/v{{ compose_version }}/docker-compose-linux-x86_64"
