@@ -1,0 +1,13 @@
+[Unit]
+Description=Tell Prometheus where the optimizer task is
+After=network-online.target
+
+[Service]
+Environment=CLUSTER={{ cluster }}
+Environment=SERVICE={{ service }}
+Environment=REGION={{ region }}
+ExecStart=/opt/theo/observability/find-optimizer.sh
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

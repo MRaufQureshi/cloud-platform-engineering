@@ -1,0 +1,15 @@
+[Unit]
+Description=THEO virtual devices
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=theo
+WorkingDirectory=/opt/theo/sim
+EnvironmentFile=/etc/theo-simulator.env
+ExecStart=/usr/bin/python3.11 /opt/theo/sim/device.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
