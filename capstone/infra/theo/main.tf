@@ -133,6 +133,16 @@ module "frontend" {
   device_ids          = module.iot.device_ids
 }
 
+# The landing website's private bucket + CloudFront. Its config.json holds the web app's
+# address, which the Simulator button opens.
+module "landing" {
+  source = "./modules/landing"
+
+  project_name = var.project_name
+  account_id   = data.aws_caller_identity.current.account_id
+  app_url      = module.frontend.cloudfront_url
+}
+
 # CloudTrail, Inspector and the Grafana password.
 module "security" {
   source = "./modules/security"

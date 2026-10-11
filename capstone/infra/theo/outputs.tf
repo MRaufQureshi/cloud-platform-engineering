@@ -112,3 +112,12 @@ output "grafana_secret_name" {
   description = "The Grafana admin password is stored under this name in Secrets Manager"
   value       = module.security.grafana_secret_name
 }
+
+output "landing_url" {
+  description = "The landing website (its Simulator button opens app_url)"
+  value       = module.landing.cloudfront_url
+}
+
+output "landing_bucket" {
+  value = module.landing.bucket_name
+}
