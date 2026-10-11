@@ -33,5 +33,6 @@ second EC2 box, built by `infra/theo/modules/observability`.
 | `theo-no-telemetry` | no telemetry for 15 minutes |
 
 ## Open Grafana
-`terraform output -raw grafana_url` (port 3000, reachable only from your IP). Log in as `admin`; the password is in
+`terraform output -raw grafana_url` (the address of the load balancer in front of Grafana, port 80, reachable only from your IP;
+the box itself is not open to the internet). Log in as `admin`; the password is in
 Secrets Manager under `theo/grafana-admin-password`. The dashboard **T.H.E.O. platform** is in the THEO folder.
