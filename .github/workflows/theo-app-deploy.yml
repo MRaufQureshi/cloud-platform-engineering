@@ -4,6 +4,7 @@ name: T.H.E.O. App Deploy
 # theo-ci.yml, before anything could merge.
 #   optimizer  build the image, push to ECR (tagged with the commit), roll out to ECS
 #   frontend   build the web app, copy it to S3, refresh CloudFront
+#   landing    same for the landing website (its own bucket and CloudFront)
 
 on:
   push:
@@ -11,6 +12,7 @@ on:
     paths:
       - "capstone/apps/optimizer/**"
       - "capstone/apps/frontend/**"
+      - "capstone/apps/landing/**"
       - ".github/workflows/theo-app-deploy.yml"
   workflow_dispatch:
 
@@ -131,4 +133,47 @@ jobs:
           URL=$(aws cloudfront list-distributions --query "DistributionList.Items[?Comment=='theo-site'].DomainName | [0]" --output text)
           echo "App address: https://$URL"
           echo "### App deployed" >> "$GITHUB_STEP_SUMMARY"
+          echo "https://$URL" >> "$GITHUB_STEP_SUMMARY"
+
+  deploy-landing:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_THEO_ROLE_APPLY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Install dependencies
+        working-directory: capstone/apps/landing
+        run: npm ci
+
+      - name: Build the site
+        working-directory: capstone/apps/landing
+        run: npm run build
+
+      # config.json is written by Terraform (the web app's address): never overwritten here.
+      - name: Copy the site to S3
+        working-directory: capstone/apps/landing
+        run: |
+          BUCKET=theo-landing-$(aws sts get-caller-identity --query Account --output text)
+          aws s3 sync dist/assets s3://$BUCKET/assets --delete --cache-control "public,max-age=31536000,immutable"
+          aws s3 sync dist s3://$BUCKET --exclude "assets/*" --exclude "config.json" --cache-control "no-cache"
+
+      - name: Refresh CloudFront
+        run: |
+          DIST=$(aws cloudfront list-distributions --query "DistributionList.Items[?Comment=='theo-landing'].Id | [0]" --output text)
+          aws cloudfront create-invalidation --distribution-id $DIST --paths "/*"
+
+      - name: Show the site address
+        run: |
+          URL=$(aws cloudfront list-distributions --query "DistributionList.Items[?Comment=='theo-landing'].DomainName | [0]" --output text)
+          echo "Site address: https://$URL"
+          echo "### Landing site deployed" >> "$GITHUB_STEP_SUMMARY"
           echo "https://$URL" >> "$GITHUB_STEP_SUMMARY"
