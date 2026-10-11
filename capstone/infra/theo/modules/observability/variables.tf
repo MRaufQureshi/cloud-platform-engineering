@@ -87,3 +87,8 @@ variable "public_subnet_ids" {
 variable "alb_security_group_id" {
   type = string
 }
+
+variable "ansible_hash" {
+  description = "Hash of the Ansible folder: a change replaces the box"
+  type        = string
+}
