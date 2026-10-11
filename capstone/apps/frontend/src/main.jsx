@@ -1,12 +1,12 @@
 // main.jsx - starts the app. Order matters:
 //   1. download /config.json (written by Terraform: API address + login pool IDs)
 //   2. tell Amplify about the login pool
-//   3. show the login screen; only a logged-in user ever sees <App>
+//   3. show the app; it shows the login page until someone signs in
 import React from "react";
 import { createRoot } from "react-dom/client";
 import { Amplify } from "aws-amplify";
-import { Authenticator } from "@aws-amplify/ui-react";
-import "@aws-amplify/ui-react/styles.css";
+import "@fontsource-variable/manrope";
+import "@fontsource-variable/jetbrains-mono";
 import App from "./App.jsx";
 import "./styles.css";
 
@@ -22,11 +22,7 @@ async function start() {
       Auth: { Cognito: { userPoolId: config.userPoolId, userPoolClientId: config.userPoolClientId } },
     });
 
-    root.render(
-      <Authenticator hideSignUp loginMechanisms={["email"]}>
-        {({ signOut }) => <App config={config} signOut={signOut} />}
-      </Authenticator>
-    );
+    root.render(<App config={config} />);
   } catch (error) {
     root.render(<p className="fatal">Could not start the app: {error.message}</p>);
   }
