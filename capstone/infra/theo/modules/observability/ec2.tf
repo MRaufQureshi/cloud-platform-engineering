@@ -39,14 +39,18 @@ resource "aws_instance" "observability" {
   iam_instance_profile   = aws_iam_instance_profile.observability.name
 
   user_data = templatefile("${path.module}/user_data.sh.tpl", {
-    region                = var.region
-    bucket                = var.data_bucket_name
-    secret_id             = var.grafana_secret_arn
-    cluster               = var.cluster_name
-    service               = var.service_name
-    node_exporter_version = var.node_exporter_version
-    compose_version       = var.compose_version
-    config_hash           = md5(join("", [for o in aws_s3_object.config : o.etag], [aws_s3_object.prometheus.etag]))
+    region = var.region
+    bucket = var.data_bucket_name
+    hashes = "${var.ansible_hash} ${md5(join("", [for o in aws_s3_object.config : o.etag], [aws_s3_object.prometheus.etag]))}"
+    vars_json = jsonencode({
+      region                = var.region
+      bucket                = var.data_bucket_name
+      secret_id             = var.grafana_secret_arn
+      cluster               = var.cluster_name
+      service               = var.service_name
+      node_exporter_version = var.node_exporter_version
+      compose_version       = var.compose_version
+    })
   })
   user_data_replace_on_change = true
 
