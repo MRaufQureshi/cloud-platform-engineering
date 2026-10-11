@@ -41,7 +41,7 @@ resource "aws_instance" "observability" {
   user_data = templatefile("${path.module}/user_data.sh.tpl", {
     region = var.region
     bucket = var.data_bucket_name
-    hashes = "${var.ansible_hash} ${md5(join("", [for o in aws_s3_object.config : o.etag], [aws_s3_object.prometheus.etag]))}"
+    hashes = "${var.ansible_hash} ${md5(join("", [for o in aws_s3_object.config : o.etag], [filemd5("${var.code_dir}/prometheus.yml.tpl")]))}"
     vars_json = jsonencode({
       region                = var.region
       bucket                = var.data_bucket_name
