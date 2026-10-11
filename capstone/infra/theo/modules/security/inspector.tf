@@ -9,6 +9,11 @@
 resource "aws_inspector2_enabler" "main" {
   account_ids    = [var.account_id]
   resource_types = ["EC2", "ECR", "LAMBDA"]
+  
+  # AWS needs longer than the default 5 minutes to switch Inspector off,
+  timeouts {
+    delete = "10m"
+  }
 }
 
 # Re-scan images continuously, so a new CVE shows up on an image pushed weeks ago.
