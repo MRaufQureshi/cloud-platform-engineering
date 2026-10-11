@@ -74,3 +74,16 @@ variable "compose_version" {
   type    = string
   default = "2.29.7"
 }
+
+variable "vpc_id" {
+  type = string
+}
+
+variable "public_subnet_ids" {
+  description = "Both public subnets: a load balancer needs two availability zones"
+  type        = list(string)
+}
+
+variable "alb_security_group_id" {
+  type = string
+}
