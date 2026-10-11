@@ -1,0 +1,8 @@
+# Runs on the simulator box itself. Values come from Terraform (see the box's user_data).
+- name: Simulator box
+  hosts: localhost
+  connection: local
+  become: true
+  roles:
+    - node_exporter
+    - simulator

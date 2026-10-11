@@ -1,0 +1,8 @@
+# Runs on the observability box itself. Values come from Terraform (see the box's user_data).
+- name: Observability box
+  hosts: localhost
+  connection: local
+  become: true
+  roles:
+    - node_exporter
+    - observability
