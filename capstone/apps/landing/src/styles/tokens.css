@@ -1,0 +1,69 @@
+/* Design tokens. UI roles come from the root DESIGN.md (dark only, teal primary, Manrope +
+   JetBrains Mono, 16/8/pill radii, 8px spacing base); energy roles extend it for the story. */
+:root {
+  color-scheme: dark;
+
+  /* DESIGN.md */
+  --bg: #080c16;
+  --surface: #1e293b;
+  --border: #27272a;
+  --text: #ffffff;
+  --text-dim: #a1a1aa;
+  --primary: #2dd4bf;
+  --accent: #5eead4;
+
+  /* Energy roles */
+  --energy: #2dd4bf;
+  --solar: #fbbf24;
+  --peak: #fb7185;
+  --grid: #818cf8;
+
+  /* Derived surfaces */
+  --surface-glass: rgb(16 23 38 / 0.62);
+  --surface-raised: #182234;
+  --line: rgb(255 255 255 / 0.08);
+  --line-strong: rgb(255 255 255 / 0.16);
+
+  /* Type */
+  --font-display: 'Manrope Variable', 'Manrope', ui-sans-serif, system-ui, sans-serif;
+  --font-body: 'Manrope Variable', 'Manrope', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono Variable', 'JetBrains Mono', ui-monospace, 'SFMono-Regular', monospace;
+
+  --fs-hero: clamp(3.1rem, 9.4vw, 9.75rem);
+  --fs-h1: clamp(2.6rem, 6.2vw, 6.25rem);
+  --fs-h2: clamp(2rem, 4.2vw, 4rem);
+  --fs-h3: clamp(1.35rem, 2vw, 1.75rem);
+  --fs-lead: clamp(1.05rem, 1.35vw, 1.3rem);
+  --fs-body: 1rem;
+  --fs-label: 0.75rem;
+
+  /* Spacing (8px base) */
+  --s-1: 8px;
+  --s-2: 16px;
+  --s-3: 24px;
+  --s-4: 32px;
+  --s-6: 48px;
+  --s-8: 64px;
+  --s-10: 80px;
+  --s-16: 128px;
+  --gutter: clamp(16px, 4vw, 64px);
+
+  /* Radii */
+  --r-card: 16px;
+  --r-control: 8px;
+  --r-pill: 9999px;
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-fast: 180ms;
+  --dur: 420ms;
+  --dur-slow: 900ms;
+
+  --z-gl: 0;
+  --z-content: 1;
+  --z-hud: 20;
+  --z-nav: 40;
+  --z-cursor: 90;
+  --z-loader: 100;
+}

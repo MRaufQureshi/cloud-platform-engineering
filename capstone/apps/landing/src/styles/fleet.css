@@ -1,0 +1,273 @@
+/* Fleet board (depot chapter) */
+
+.fleet-board {
+  padding: var(--s-3);
+  border-radius: var(--r-card);
+  border: 1px solid var(--border);
+  background: rgb(10 15 26 / 0.84);
+  backdrop-filter: blur(18px) saturate(130%);
+  box-shadow: 0 30px 80px -30px rgb(0 0 0 / 0.7);
+}
+
+.fleet-head {
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+.fleet-clock {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 0;
+  font: 600 2rem/1 var(--font-mono);
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
+}
+.fleet-tier {
+  font: 600 0.68rem/1 var(--font-mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 6px 10px;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--line-strong);
+  color: var(--text-dim);
+}
+.fleet-tier .tier-short {
+  display: none;
+}
+.fleet-tier[data-tier='critical'] {
+  color: var(--peak);
+  border-color: rgb(251 113 133 / 0.5);
+  background: rgb(251 113 133 / 0.08);
+}
+.fleet-tier[data-tier='off-peak'] {
+  color: var(--accent);
+  border-color: rgb(94 234 212 / 0.4);
+}
+.fleet-totals {
+  display: flex;
+  gap: var(--s-3);
+  margin: 0;
+}
+.fleet-totals div {
+  display: grid;
+  gap: 4px;
+}
+.fleet-totals dt {
+  font: 600 0.62rem/1 var(--font-mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+.fleet-totals dd {
+  margin: 0;
+  font: 600 1.1rem/1 var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.fleet-cards {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 10px;
+}
+.fleet-card {
+  display: grid;
+  gap: 6px;
+  align-content: start;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: rgb(255 255 255 / 0.02);
+  transition: border-color var(--dur), background var(--dur), opacity var(--dur);
+}
+.fleet-card p {
+  margin: 0;
+}
+.fleet-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 6px;
+}
+.fleet-name {
+  font-weight: 600;
+  font-size: 0.86rem;
+  white-space: nowrap;
+}
+.fleet-leaves {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+.fleet-kind {
+  font: 500 0.66rem/1.3 var(--font-mono);
+  color: var(--text-dim);
+}
+.fleet-batt {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.fleet-bar {
+  position: relative;
+  flex: 1;
+  height: 6px;
+  border-radius: var(--r-pill);
+  background: rgb(255 255 255 / 0.08);
+}
+.fleet-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: inherit;
+  background: #94a3b8;
+  transition: width 0.25s linear, background var(--dur);
+}
+.fleet-min {
+  position: absolute;
+  top: -3px;
+  bottom: -3px;
+  left: calc(var(--min) * 100%);
+  width: 2px;
+  border-radius: 2px;
+  background: var(--peak);
+}
+.fleet-soc {
+  width: 3em;
+  text-align: right;
+  font-size: 0.72rem;
+  font-variant-numeric: tabular-nums;
+}
+.fleet-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: var(--r-pill);
+  background: rgb(255 255 255 / 0.05);
+  font-size: 0.76rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.fleet-icon {
+  font-family: var(--font-mono);
+}
+.fleet-reason {
+  font-size: 0.72rem;
+  line-height: 1.35;
+  color: var(--text-dim);
+  min-height: 2.7em;
+}
+.fleet-card[data-action='charge'] {
+  border-color: rgb(129 140 248 / 0.35);
+}
+.fleet-card[data-action='charge'] .fleet-fill {
+  background: var(--grid);
+}
+.fleet-card[data-action='charge'] .fleet-badge {
+  color: #c7d2fe;
+  background: rgb(129 140 248 / 0.14);
+}
+.fleet-card[data-action='discharge'] {
+  border-color: rgb(45 212 191 / 0.45);
+  background: rgb(45 212 191 / 0.06);
+}
+.fleet-card[data-action='discharge'] .fleet-fill {
+  background: var(--primary);
+  box-shadow: 0 0 10px rgb(45 212 191 / 0.6);
+}
+.fleet-card[data-action='discharge'] .fleet-badge {
+  color: var(--accent);
+  background: rgb(45 212 191 / 0.14);
+}
+/* A vehicle that has left: the text keeps full contrast, only the bar and the badge step back. */
+.fleet-card[data-action='away'] .fleet-bar,
+.fleet-card[data-action='away'] .fleet-badge {
+  opacity: 0.5;
+}
+.fleet-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin: 0 0 0 auto;
+  padding: 0;
+  list-style: none;
+  font-size: 0.75rem;
+  color: var(--text-dim);
+}
+.fleet-legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.fleet-legend-min {
+  width: 2px;
+  height: 12px;
+  border-radius: 2px;
+  background: var(--peak);
+}
+
+@media (max-width: 1180px) {
+  .fleet-cards {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+@media (max-width: 640px) {
+  .fleet-board {
+    padding: 14px;
+  }
+  .fleet-head {
+    gap: 10px 12px;
+  }
+  .fleet-clock {
+    font-size: 1.6rem;
+  }
+  /* A fixed-width chip with a short label, so the clock row never changes size while scrubbing. */
+  .fleet-tier {
+    position: relative;
+    box-sizing: border-box;
+    width: 4.9rem;
+    padding-inline: 0;
+    text-align: center;
+  }
+  .fleet-tier .tier-long {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .fleet-tier .tier-short {
+    display: inline;
+  }
+  /* Totals always sit on their own row; the legend is a single line below them. */
+  .fleet-totals {
+    flex: 1 0 100%;
+    gap: var(--s-4);
+  }
+  .fleet-legend {
+    flex: 1 0 100%;
+    flex-wrap: nowrap;
+    gap: 12px;
+    margin: 0;
+    font-size: 0.68rem;
+    white-space: nowrap;
+  }
+  .fleet-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .fleet-kind,
+  .fleet-reason {
+    display: none;
+  }
+  .fleet-card {
+    padding: 10px;
+  }
+}
