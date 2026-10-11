@@ -4,10 +4,11 @@
 # They refer to EACH OTHER instead of IP ranges ("allow from obs-sg"), so the
 # rules keep working when instances get new addresses.
 #
-#   sim-sg      simulator EC2     :9100 node_exporter, :8000 app metrics  <- obs-sg only
-#   obs-sg      Grafana/Prometheus :3000 Grafana                          <- your IP only
-#   fargate-sg  optimizer task    :8000 app metrics                       <- obs-sg only
-#   vpce-sg     interface endpoints :443                                  <- inside the VPC
+#   sim-sg      simulator EC2                       :9100 node_exporter, :8000 app metrics  <- obs-sg only
+#   obs-sg      Grafana/Prometheus                  :3000 Grafana                           <- alb-sg only
+#   alb-sg      Grafana load balancer               :80                                     <- your IP only
+#   fargate-sg  optimizer task                      :8000 app metrics                       <- obs-sg only
+#   vpce-sg     interface endpoints                 :443                                    <- inside the VPC
 #
 # All egress is open: these hosts must call AWS APIs, aWATTar and the IoT endpoint.
 
@@ -56,12 +57,38 @@ resource "aws_vpc_security_group_ingress_rule" "sim_app_metrics" {
 
 # --- obs-sg inbound
 resource "aws_vpc_security_group_ingress_rule" "obs_grafana" {
-  security_group_id = aws_security_group.obs.id
+  security_group_id            = aws_security_group.obs.id
+  referenced_security_group_id = aws_security_group.alb.id
+  ip_protocol                  = "tcp"
+  from_port                    = 3000
+  to_port                      = 3000
+  description                  = "Grafana from the load balancer only"
+}
+
+# --- alb-sg: the load balancer in front of Grafana. Only your IP may knock, and it
+# may only talk to the observability box on Grafana's port.
+resource "aws_security_group" "alb" {
+  name        = "${var.project_name}-alb-sg"
+  description = "Grafana load balancer: port 80 from my IP only"
+  vpc_id      = aws_vpc.main.id
+}
+
+resource "aws_vpc_security_group_ingress_rule" "alb_http" {
+  security_group_id = aws_security_group.alb.id
   cidr_ipv4         = "${var.my_ip}/32" # /32 = exactly one address
   ip_protocol       = "tcp"
-  from_port         = 3000
-  to_port           = 3000
-  description       = "Grafana from my IP only"
+  from_port         = 80
+  to_port           = 80
+  description       = "HTTP from my IP only"
+}
+
+resource "aws_vpc_security_group_egress_rule" "alb_to_grafana" {
+  security_group_id            = aws_security_group.alb.id
+  referenced_security_group_id = aws_security_group.obs.id
+  ip_protocol                  = "tcp"
+  from_port                    = 3000
+  to_port                      = 3000
+  description                  = "Forward to Grafana on the observability box"
 }
 
 # Prometheus scrapes node_exporter on its own box too (it is a scrape target),
