@@ -135,19 +135,22 @@ module "security" {
 module "observability" {
   source = "./modules/observability"
 
-  project_name         = var.project_name
-  region               = var.region
-  subnet_id            = module.network.public_subnet_ids[1]
-  security_group_id    = module.network.obs_sg_id
-  code_dir             = "${path.root}/../../apps/observability"
-  data_bucket_name     = module.data.data_bucket_name
-  data_bucket_arn      = module.data.data_bucket_arn
-  simulator_private_ip = module.simulator.private_ip
-  cluster_name         = module.optimizer.cluster_name
-  service_name         = module.optimizer.service_name
-  replan_queue_name    = module.optimizer.replan_queue_name
-  dlq_name             = module.optimizer.dlq_name
-  telemetry_rule_name  = module.iot.telemetry_rule_name
-  grafana_secret_arn   = module.security.grafana_secret_arn
-  alert_email          = var.alert_email
+  project_name          = var.project_name
+  region                = var.region
+  subnet_id             = module.network.public_subnet_ids[1]
+  security_group_id     = module.network.obs_sg_id
+  vpc_id                = module.network.vpc_id
+  public_subnet_ids     = module.network.public_subnet_ids
+  alb_security_group_id = module.network.alb_sg_id
+  code_dir              = "${path.root}/../../apps/observability"
+  data_bucket_name      = module.data.data_bucket_name
+  data_bucket_arn       = module.data.data_bucket_arn
+  simulator_private_ip  = module.simulator.private_ip
+  cluster_name          = module.optimizer.cluster_name
+  service_name          = module.optimizer.service_name
+  replan_queue_name     = module.optimizer.replan_queue_name
+  dlq_name              = module.optimizer.dlq_name
+  telemetry_rule_name   = module.iot.telemetry_rule_name
+  grafana_secret_arn    = module.security.grafana_secret_arn
+  alert_email           = var.alert_email
 }
