@@ -43,14 +43,14 @@ resource "aws_iam_role_policy" "observability" {
         Sid      = "ReadConfigFiles"
         Effect   = "Allow"
         Action   = "s3:GetObject"
-        Resource = "${var.data_bucket_arn}/observability/*"
+        Resource = ["${var.data_bucket_arn}/observability/*", "${var.data_bucket_arn}/ansible/*"]
       },
       {
         Sid       = "ListConfigFiles"
         Effect    = "Allow"
         Action    = "s3:ListBucket"
         Resource  = var.data_bucket_arn
-        Condition = { StringLike = { "s3:prefix" = ["observability/*"] } }
+        Condition = { StringLike = { "s3:prefix" = ["observability/*", "ansible/*"] } }
       },
       {
         Sid      = "ReadGrafanaPassword"
