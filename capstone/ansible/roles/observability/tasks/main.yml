@@ -1,0 +1,68 @@
+- name: Docker
+  ansible.builtin.dnf:
+    name: docker
+    state: present
+
+- name: Start Docker
+  ansible.builtin.systemd:
+    name: docker
+    enabled: true
+    state: started
+
+- name: Docker Compose plugin
+  ansible.builtin.get_url:
+    url: "https://github.com/docker/compose/releases/download/v{{ compose_version }}/docker-compose-linux-x86_64"
+    dest: /usr/local/lib/docker/cli-plugins/docker-compose
+    mode: "0755"
+
+- name: Folders
+  ansible.builtin.file:
+    path: /opt/theo/observability/targets
+    state: directory
+
+- name: The config files, from S3
+  ansible.builtin.command: aws s3 cp "s3://{{ bucket }}/observability/" /opt/theo/observability/ --recursive --region {{ region }}
+  changed_when: true
+
+- name: Empty target list (the finder fills it in)
+  ansible.builtin.copy:
+    content: "[]\n"
+    dest: /opt/theo/observability/targets/optimizer.json
+    force: false
+    mode: "0644"
+
+- name: The finder script can run
+  ansible.builtin.file:
+    path: /opt/theo/observability/find-optimizer.sh
+    mode: "0755"
+
+- name: Grafana password, from Secrets Manager
+  ansible.builtin.shell: >
+    echo "GRAFANA_PASSWORD=$(aws secretsmanager get-secret-value --secret-id '{{ secret_id }}'
+    --region {{ region }} --query SecretString --output text)" > /opt/theo/observability/.env
+  changed_when: true
+  no_log: true
+
+- name: Only root can read the password file
+  ansible.builtin.file:
+    path: /opt/theo/observability/.env
+    mode: "0600"
+
+- name: Finder service file
+  ansible.builtin.template:
+    src: find-optimizer.service.j2
+    dest: /etc/systemd/system/find-optimizer.service
+    mode: "0644"
+
+- name: Start the finder
+  ansible.builtin.systemd:
+    name: find-optimizer
+    enabled: true
+    state: restarted
+    daemon_reload: true
+
+- name: Start Prometheus and Grafana
+  ansible.builtin.command: docker compose up -d
+  args:
+    chdir: /opt/theo/observability
+  changed_when: true

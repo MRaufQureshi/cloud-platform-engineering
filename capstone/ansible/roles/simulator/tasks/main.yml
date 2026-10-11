@@ -1,0 +1,74 @@
+- name: Python 3.11 (AL2023's default is older)
+  ansible.builtin.dnf:
+    name:
+      - python3.11
+      - python3.11-pip
+    state: present
+
+- name: Service user
+  ansible.builtin.user:
+    name: theo
+    system: true
+    home: /opt/theo
+    shell: /sbin/nologin
+
+- name: Folders
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+  loop:
+    - /opt/theo/sim
+    - /opt/theo/certs
+
+- name: The simulator code, from S3
+  ansible.builtin.command: aws s3 cp "s3://{{ bucket }}/simulator/" /opt/theo/sim/ --recursive --region {{ region }}
+  changed_when: true
+
+- name: Python packages
+  ansible.builtin.pip:
+    requirements: /opt/theo/sim/requirements.txt
+    executable: pip3.11
+
+- name: Amazon's root CA (how devices verify they talk to AWS IoT)
+  ansible.builtin.get_url:
+    url: https://www.amazontrust.com/repository/AmazonRootCA1.pem
+    dest: /opt/theo/certs/AmazonRootCA1.pem
+    mode: "0644"
+
+- name: Device certificates, from SSM Parameter Store
+  ansible.builtin.shell: >
+    aws ssm get-parameter --region {{ region }} --name "/{{ project }}/devices/{{ item }}/cert"
+    --query Parameter.Value --output text > /opt/theo/certs/{{ item }}.cert.pem
+  loop: "{{ device_ids }}"
+  changed_when: true
+
+- name: Device private keys, from SSM Parameter Store
+  ansible.builtin.shell: >
+    aws ssm get-parameter --region {{ region }} --name "/{{ project }}/devices/{{ item }}/key" --with-decryption
+    --query Parameter.Value --output text > /opt/theo/certs/{{ item }}.key.pem
+  loop: "{{ device_ids }}"
+  changed_when: true
+  no_log: true
+
+- name: Private keys readable by the service user only
+  ansible.builtin.shell: chown -R theo:theo /opt/theo && chmod 700 /opt/theo/certs && chmod 600 /opt/theo/certs/*
+  changed_when: true
+
+- name: Settings file
+  ansible.builtin.template:
+    src: theo-simulator.env.j2
+    dest: /etc/theo-simulator.env
+    mode: "0644"
+
+- name: Service file
+  ansible.builtin.copy:
+    src: theo-simulator.service
+    dest: /etc/systemd/system/theo-simulator.service
+    mode: "0644"
+
+- name: Start the simulator
+  ansible.builtin.systemd:
+    name: theo-simulator
+    enabled: true
+    state: restarted
+    daemon_reload: true
