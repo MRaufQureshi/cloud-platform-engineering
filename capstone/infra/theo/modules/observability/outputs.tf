@@ -3,7 +3,7 @@ output "public_ip" {
 }
 
 output "grafana_url" {
-  value = "http://${aws_instance.observability.public_ip}:3000"
+  value = "http://${aws_lb.grafana.dns_name}"
 }
 
 output "instance_id" {
