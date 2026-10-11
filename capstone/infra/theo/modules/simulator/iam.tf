@@ -39,7 +39,7 @@ resource "aws_iam_role_policy" "simulator" {
         Sid      = "ReadSimulatorCode"
         Effect   = "Allow"
         Action   = "s3:GetObject"
-        Resource = "${var.data_bucket_arn}/simulator/*"
+        Resource = ["${var.data_bucket_arn}/simulator/*", "${var.data_bucket_arn}/ansible/*"]
       },
       {
         # `aws s3 cp --recursive` lists the prefix first, which needs ListBucket.
@@ -47,7 +47,7 @@ resource "aws_iam_role_policy" "simulator" {
         Effect    = "Allow"
         Action    = "s3:ListBucket"
         Resource  = var.data_bucket_arn
-        Condition = { StringLike = { "s3:prefix" = ["simulator/*"] } }
+        Condition = { StringLike = { "s3:prefix" = ["simulator/*", "ansible/*"] } }
       },
       {
         Sid      = "ReadDeviceCertificates"
