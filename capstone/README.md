@@ -94,7 +94,7 @@ has not run yet at 9:00). To bring the demo back, in this order:
 | 8 | Open the app | `cd capstone/infra/theo && terraform output -raw app_url` | the address changes after every rebuild |
 | 9 | Open Grafana | `cd capstone/infra/theo && terraform output -raw grafana_url`, password: `aws secretsmanager get-secret-value --secret-id theo/grafana-admin-password --query SecretString --output text` | user `admin`; only your IP can reach it, so update `my_ip` if your IP changed. The address is also in the **Outputs** step of a **T.H.E.O. Infra Run** (`apply`). It is a load balancer's name, so it stays the same when the Grafana box is replaced |
 | 10 | Confirm the alarm email | click the link in the email AWS sends to `alert_email` | a rebuild creates a new subscription, and alarm emails only start after the click |
-| 11 | Wait ~3 minutes, then plug a car in (or press PLUG IN in the app) | `aws iot-data publish --topic theo/device-1/control --cli-binary-format raw-in-base64-out --payload '{"cmd":"plug_in"}'` | the simulator box needs that long to boot |
+| 11 | Wait ~3 minutes, then plug a car in (or press **Plug in car** on the app's Control page) | `aws iot-data publish --topic theo/device-1/control --cli-binary-format raw-in-base64-out --payload '{"cmd":"plug_in"}'` | the simulator box needs that long to boot |
 
 If `prerequisites` or `bootstrap` were wiped too (the OIDC roles or the state bucket
 are gone), repeat steps 1 and 2 of the Quickstart first.

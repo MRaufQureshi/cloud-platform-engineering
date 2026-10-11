@@ -134,7 +134,7 @@ curl -s -o /dev/null -w "%{http_code}\n" https://$(terraform output -raw fronten
 curl -s -i -X OPTIONS -H "Origin: $APP" -H "Access-Control-Request-Method: GET" -H "Access-Control-Request-Headers: authorization" $(terraform output -raw api_url)/device/device-1/status | grep -i access-control-allow-origin
 ```
 Then open `$APP` in a browser: sign in with `terraform output demo_username` and
-`terraform output -raw demo_temporary_password`, choose a new password, press PLUG IN, and watch the
+`terraform output -raw demo_temporary_password`, choose a new password, press **Plug in car** on Control, and watch the
 Dashboard fill in.
 
 ## Testing Phase 7 (Grafana, alarms, security)
