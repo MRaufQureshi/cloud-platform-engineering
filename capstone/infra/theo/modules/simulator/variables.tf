@@ -64,3 +64,8 @@ variable "node_exporter_version" {
   type        = string
   default     = "1.8.2"
 }
+
+variable "ansible_hash" {
+  description = "Hash of the Ansible folder: a change replaces the box"
+  type        = string
+}

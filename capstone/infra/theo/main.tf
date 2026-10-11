@@ -14,6 +14,17 @@
 
 data "aws_caller_identity" "current" {}
 
+# The Ansible playbooks both EC2 boxes run at boot. One upload, one hash: a change in any
+# file replaces both boxes (their user_data contains the hash).
+resource "aws_s3_object" "ansible" {
+  for_each = fileset("${path.root}/../../ansible", "**")
+
+  bucket = module.data.data_bucket_name
+  key    = "ansible/${each.key}"
+  source = "${path.root}/../../ansible/${each.key}"
+  etag   = filemd5("${path.root}/../../ansible/${each.key}")
+}
+
 # VPC, subnets, NAT, security groups, VPC endpoints.
 module "network" {
   source = "./modules/network"
@@ -49,6 +60,7 @@ module "iot" {
 module "simulator" {
   source = "./modules/simulator"
 
+  ansible_hash      = md5(join("", [for o in aws_s3_object.ansible : o.etag]))
   project_name      = var.project_name
   subnet_id         = module.network.public_subnet_ids[0]
   security_group_id = module.network.sim_sg_id
@@ -135,6 +147,7 @@ module "security" {
 module "observability" {
   source = "./modules/observability"
 
+  ansible_hash          = md5(join("", [for o in aws_s3_object.ansible : o.etag]))
   project_name          = var.project_name
   region                = var.region
   subnet_id             = module.network.public_subnet_ids[1]

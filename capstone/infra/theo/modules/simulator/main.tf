@@ -6,7 +6,7 @@
 # Delivery chain, nothing baked into an image:
 #   Terraform --> S3 (device.py)          --> instance downloads it at boot
 #   Terraform --> SSM Parameter Store     --> instance reads its device certs at boot
-#   user_data  --> installs Python, node_exporter, starts the systemd services
+#   user_data  --> installs Ansible and runs the playbook (capstone/ansible) that does the rest
 #
 # No SSH key pair exists. You get a shell with SSM Session Manager (see iam.tf).
 
@@ -42,15 +42,18 @@ resource "aws_instance" "simulator" {
   # The whole boot script is rendered here. The code hash inside it means a code
   # change changes user_data, which (below) replaces the instance so it re-pulls.
   user_data = templatefile("${path.module}/user_data.sh.tpl", {
-    project               = var.project_name
-    region                = data.aws_region.current.name
-    bucket                = var.data_bucket_name
-    iot_endpoint          = var.iot_endpoint
-    device_ids            = join(" ", var.device_ids)
-    device_ids_csv        = join(",", var.device_ids)
-    time_scale            = var.time_scale
-    node_exporter_version = var.node_exporter_version
-    code_hash             = md5(join("", [for o in aws_s3_object.code : o.etag]))
+    region = data.aws_region.current.name
+    bucket = var.data_bucket_name
+    hashes = "${var.ansible_hash} ${md5(join("", [for o in aws_s3_object.code : o.etag]))}"
+    vars_json = jsonencode({
+      project               = var.project_name
+      region                = data.aws_region.current.name
+      bucket                = var.data_bucket_name
+      iot_endpoint          = var.iot_endpoint
+      device_ids            = var.device_ids
+      time_scale            = var.time_scale
+      node_exporter_version = var.node_exporter_version
+    })
   })
   user_data_replace_on_change = true
 
