@@ -5,22 +5,17 @@ hand. The repo's root [PREREQUISITES.md](../PREREQUISITES.md) covers `core`,
 `scaling`, `rds` and `ecs-fargate`; this file covers only the capstone, which
 automates most of that with its own three-step ladder.
 
-> Everything here targets the **lab account (464447071956)**, `us-east-1`. The
-> lab wipes itself, so the whole list is repeatable.
-
 | # | What | How | When |
 |---|---|---|---|
 | 1 | AWS CLI v2, Terraform ≥ 1.10, `make` | install locally | once per machine |
 | 2 | Lab credentials | `make -C capstone check-account` must print `464447071956` | every session |
 | 3 | GitHub OIDC provider + CI roles | **`make -C capstone prerequisites`** | once per lab wipe |
 | 4 | Terraform state bucket | **`make -C capstone bootstrap`** | once per lab wipe |
-| 5 | GitHub repo Variables (three) plus two secrets, `MY_IP` and `ALERT_EMAIL` (from Phase 7) | by hand (below) | after steps 3 and 4 |
+| 5 | GitHub repo Variables (three) plus two secrets, `MY_IP` and `ALERT_EMAIL` | by hand (below) | after steps 3 and 4 |
 | 6 | Docker, Node.js 22+ (with npm) | install locally | Phase 3 (optimizer) and Phase 6 (frontend: `npm ci`, `npm run dev`) |
-| 7 | `curl`, plus lab credentials that may use Cognito (`cognito-idp`) | already on most machines | Phase 5, testing the API from a terminal |
+| 7 | `curl`, plus lab credentials that may use Cognito (`cognito-idp`) | already on most machines | testing the API from a terminal |
 
 Items 3 and 4 are Terraform in `infra/prerequisites/` and `infra/bootstrap/`.
-Nothing else needs creating by hand: no key pairs (EC2 uses SSM Session Manager),
-no budget (the lab is a sandbox), no domain (Route53 is out of scope for now).
 
 ---
 
@@ -30,10 +25,9 @@ no budget (the lab is a sandbox), no domain (Route53 is out of scope for now).
 make -C capstone check-account
 ```
 
-Must print `464447071956`. If it prints your personal account, stop: the
-`allowed_account_ids` guard would refuse to run anyway.
+Must print `464447071956`. If it prints your personal account, stop: the `allowed_account_ids` guard would refuse to run anyway.
 
-## 2. Step 1 — `prerequisites`
+## 2. Step 1 - `prerequisites`
 
 ```bash
 make -C capstone prerequisites
@@ -46,10 +40,9 @@ Creates the GitHub OIDC provider and two roles:
 | `github-actions-theo-terraform-plan` | read-only | pull requests and `main` |
 | `github-actions-theo-terraform-apply` | build and destroy | `main` only |
 
-Why it cannot run in CI: it creates the very access CI needs. Details in
-[infra/prerequisites/README.md](infra/prerequisites/README.md).
+Why it cannot run in CI: it creates the very access CI needs. Details in [infra/prerequisites/README.md](infra/prerequisites/README.md).
 
-## 3. Step 2 — `bootstrap`
+## 3. Step 2 - `bootstrap`
 
 ```bash
 make -C capstone bootstrap
@@ -62,9 +55,7 @@ name and the exact `backend.lab.hcl` line.
 ## 4. Set the GitHub repo Variables
 (Three Variables, plus the `MY_IP` secret from Phase 1 on and the `ALERT_EMAIL` secret from Phase 7 on.)
 
-Settings → Secrets and variables → Actions → **Variables** → New repository
-variable. (Variables, not Secrets: role ARNs and bucket names are not secret,
-and the workflows read them as `vars.*`.)
+Settings → Secrets and variables → Actions → **Variables** → New repository variable. (Variables, not Secrets: role ARNs and bucket names are not secret, and the workflows read them as `vars.*`.)
 
 | Variable | Value | Printed by |
 |---|---|---|
@@ -72,8 +63,7 @@ and the workflows read them as `vars.*`.)
 | `AWS_THEO_ROLE_PLAN` | ARN of `github-actions-theo-terraform-plan` | step 1 |
 | `THEO_STATE_BUCKET` | bucket name | step 2 |
 
-And one **secret** (Settings → Secrets and variables → Actions → **Secrets** →
-New repository secret):
+And one **secret** (Settings → Secrets and variables → Actions → **Secrets** → New repository secret):
 
 | Secret | Value |
 |---|---|
@@ -90,20 +80,19 @@ The Grafana address (`grafana_url`) is listed with the other outputs: in the **O
 These are deliberately separate from `AWS_ROLE_LAB` / `TF_STATE_BUCKET_LAB`, which
 belong to `core`, `scaling` and `rds`. The two sets never overlap.
 
-Until the Variables exist, the `plan` job in `theo-ci.yml` skips itself, so
-pull requests are never red for want of a bucket.
+Until the Variables exist, the `plan` job in `theo-ci.yml` skips itself, so pull requests are never red for want of a bucket.
 
-## 5. Step 3 — the platform
+## 5. Step 3 - the platform
 
+**Actions → T.H.E.O. Infra Run**.
+
+Or:
 ```bash
 cd capstone/infra/theo
 cp backend.lab.hcl.example backend.lab.hcl     # paste the bucket from step 2
 cp terraform.tfvars.example terraform.tfvars   # set my_ip and alert_email
 cd ../../.. && make -C capstone init plan
 ```
-
-Or: **Actions → T.H.E.O. Infra Run**.
-
 ---
 
 ## Where do I run `terraform output demo_username` and `terraform output -raw demo_temporary_password`?
@@ -123,20 +112,16 @@ log in. After a lab wipe and rebuild the login is new again, so run the two comm
 
 ## After a lab wipe
 
-The account resets; the files on your laptop do not.
-
-1. Delete the stale `terraform.tfstate` in `capstone/infra/prerequisites/` and
-   `capstone/infra/bootstrap/`.
+1. Delete the stale `terraform.tfstate` in `capstone/infra/prerequisites/` and `capstone/infra/bootstrap/`.
 2. Repeat steps 1 and 2.
-3. Update the three repo Variables (the role ARNs and bucket are new objects; the
-   names are the same, but the values can differ if the account ID does).
+3. Update the three repo Variables (the role ARNs and bucket are new objects; the names are the same, but the values can differ if the account ID does).
 
 ## Why these are not part of the main stack
 
 Identities and state have to outlive the infrastructure they serve. If
 `terraform destroy` on `theo` could delete the role CI uses, or the bucket
 holding its own state, a teardown would lock you out of the pipeline or lose the
-record of what exists. So they live in two small stacks that only a human runs.
+record of what exists. So they live in two small stacks that only you runs.
 
 ## Troubleshooting
 

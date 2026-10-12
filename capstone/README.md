@@ -9,14 +9,11 @@ The business case and research behind it are in [T.H.E.O.md](T.H.E.O.md). The
 topology is in [T.H.E.O.ARCHITECTURE.md](T.H.E.O.ARCHITECTURE.md) and the build
 order in [T.H.E.O.BUILD.SPEC.md](T.H.E.O.BUILD.SPEC.md).
 
-> Builds in the **lab account (464447071956)**, us-east-1. The lab wipes itself,
-> so everything below is repeatable from scratch.
-
 ---
 
 ## Quickstart
 
-**Prerequisites:** Terraform ≥ 1.10, AWS CLI v2 with lab credentials,
+**Prerequisites:** Terraform ≥ 1.10, AWS CLI v2 with credentials,
 `make`. Docker and Node arrive in the phases that need them.
 
 ```bash
@@ -50,7 +47,7 @@ The login is Amazon Cognito. Terraform creates one demo user and a random one-ti
 cd capstone/infra/theo
 terraform output -raw app_url                        # the web app's address
 terraform output demo_username                       # admin@theo.demo
-terraform output -raw demo_temporary_password        # only shown on request, never in git
+terraform output -raw demo_temporary_password        # only shown on request
 ```
 
 At the first login Cognito makes you choose a new password (the web app shows that screen). The new
@@ -58,7 +55,7 @@ password needs **10 or more characters**, with upper and lower case, a number an
 After a lab wipe and rebuild the user is new again, so repeat the two commands above.
 
 **Q: Where do I run `terraform output demo_username` and `terraform output -raw demo_temporary_password`?**
-In your own terminal, in the main stack's folder, `capstone/infra/theo`:
+In terminal, in the main stack's folder, `capstone/infra/theo`:
 
 ```bash
 cd capstone/infra/theo
@@ -68,29 +65,29 @@ terraform output -raw demo_temporary_password
 
 Or from the repo root, without changing folder:
 `terraform -chdir=capstone/infra/theo output demo_username` (same for the password).
-Your terminal needs the **lab account credentials**, because Terraform reads the values from the state in the
-lab's S3 bucket (`make -C capstone check-account` must print the lab account). The folder must have been
-initialised once (`make -C capstone init`); after a lab wipe, redo steps 1 and 2 first. The password prints
+Your terminal needs the **account credentials**, because Terraform reads the values from the state in the
+S3 bucket (`make -C capstone check-account` must print the account). The folder must have been
+initialised once (`make -C capstone init`); after a account wipe, redo steps 1 and 2 first. The password prints
 without a trailing newline (`-raw`), so copy only the characters before your prompt.
 
 **Testing the API from a terminal?** Do not set a password on the demo user: its one-time
 password would stop working. Use a throwaway user and delete it afterwards. The exact
 commands are in [infra/theo/README.md](infra/theo/README.md) under "Testing Phase 5".
 
-## The morning after a lab wipe
+## The morning after a account wipe
 
-The lab account removes parts of the stack overnight (and the 13:05 price schedule
+The account removes parts of the stack overnight (and the 13:05 price schedule
 has not run yet at 9:00). To bring the demo back, in this order:
 
 | # | Step | Command | Why |
 |---|---|---|---|
-| 1 | Check which account you are in | `make -C capstone check-account` | must print the lab account |
+| 1 | Check which account you are in | `make -C capstone check-account` | must print the account |
 | 2 | See what is missing | `make -C capstone plan` | a wipe shows as "has been deleted" + additions, no destroys |
 | 3 | Rebuild | `make -C capstone apply` (or **Actions → T.H.E.O. Infra Run → apply**) | ~10 min, mostly the NAT gateway |
 | 4 | Put the optimizer image back (only if the ECR repo was wiped) | **Actions → T.H.E.O. App Deploy → Run workflow** | an empty repository cannot start the task |
 | 5 | Fetch prices (optional) | `make -C capstone prices` | the daily schedule only fires at 13:05 UTC; without prices the optimizer uses a typical day |
 | 6 | Get the demo login | `cd capstone/infra/theo && terraform output demo_username && terraform output -raw demo_temporary_password` | a wipe recreates the login pool, so the demo user and its one-time password are NEW every rebuild |
-| 7 | Put the web app back (the bucket is recreated empty) | **Actions → T.H.E.O. App Deploy → Run workflow** | `apply` rebuilds the bucket, CloudFront and `config.json`, but not the app files |
+| 7 | Put the web app back | **Actions → T.H.E.O. App Deploy → Run workflow** | `apply` rebuilds the bucket, CloudFront and `config.json`, but not the app files |
 | 8 | Open the app | `cd capstone/infra/theo && terraform output -raw app_url` | the address changes after every rebuild |
 | 9 | Open Grafana | `cd capstone/infra/theo && terraform output -raw grafana_url`, password: `aws secretsmanager get-secret-value --secret-id theo/grafana-admin-password --query SecretString --output text` | user `admin`; only your IP can reach it, so update `my_ip` if your IP changed. The address is also in the **Outputs** step of a **T.H.E.O. Infra Run** (`apply`). It is a load balancer's name, so it stays the same when the Grafana box is replaced |
 | 10 | Confirm the alarm email | click the link in the email AWS sends to `alert_email` | a rebuild creates a new subscription, and alarm emails only start after the click |
@@ -124,8 +121,3 @@ capstone/
 | 6b | landing website: private S3 bucket + CloudFront (HTTPS); its "Simulator" button opens the web app | done |
 | 7 | observability + security (Prometheus, Grafana, alarms, CloudTrail, Inspector) | done (25 resources + 1 changed) |
 | 8 | demo polish + destroy rehearsal | |
-
-## Deliberately excluded
-
-Route53 / custom domain / failover (to be learned separately; CloudFront's own
-domain is used), multi-region, EKS, Kinesis, Step Functions, Timestream.
