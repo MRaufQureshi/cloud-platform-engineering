@@ -92,3 +92,13 @@ variable "ansible_hash" {
   description = "Hash of the Ansible folder: a change replaces the box"
   type        = string
 }
+
+variable "landing_url" {
+  description = "Address of the landing website (CloudFront); its uptime is probed."
+  type        = string
+}
+
+variable "app_url" {
+  description = "Address of the web app (CloudFront); its uptime is probed."
+  type        = string
+}
