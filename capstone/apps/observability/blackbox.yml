@@ -1,0 +1,14 @@
+# Blackbox exporter: Prometheus asks it to open a website (or ping a box) and it reports
+# whether that worked, how long it took, and when the TLS certificate runs out.
+modules:
+  http_2xx:
+    prober: http
+    timeout: 10s
+    http:
+      preferred_ip_protocol: ip4
+      valid_status_codes: []   # any 2xx
+  icmp:
+    prober: icmp
+    timeout: 5s
+    icmp:
+      preferred_ip_protocol: ip4
