@@ -55,6 +55,15 @@ resource "aws_vpc_security_group_ingress_rule" "sim_app_metrics" {
   description                  = "simulator /metrics from obs-sg"
 }
 
+resource "aws_vpc_security_group_ingress_rule" "sim_ping" {
+  security_group_id            = aws_security_group.sim.id
+  referenced_security_group_id = aws_security_group.obs.id
+  ip_protocol                  = "icmp"
+  from_port                    = -1
+  to_port                      = -1
+  description                  = "ping from obs-sg (website monitoring)"
+}
+
 # --- obs-sg inbound
 resource "aws_vpc_security_group_ingress_rule" "obs_grafana" {
   security_group_id            = aws_security_group.obs.id

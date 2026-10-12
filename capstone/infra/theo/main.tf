@@ -176,4 +176,6 @@ module "observability" {
   telemetry_rule_name   = module.iot.telemetry_rule_name
   grafana_secret_arn    = module.security.grafana_secret_arn
   alert_email           = var.alert_email
+  landing_url           = module.landing.cloudfront_url
+  app_url               = module.frontend.cloudfront_url
 }
