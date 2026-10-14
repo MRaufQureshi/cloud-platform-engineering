@@ -38,7 +38,6 @@ export default function BatteryGauge({ soc, reserve, target }) {
         </>
       )}
       <path d={`M${ix.toFixed(2)} ${iy.toFixed(2)} L${ox.toFixed(2)} ${oy.toFixed(2)}`} stroke="#F8FAFC" strokeWidth="3" strokeLinecap="round" />
-      {ky < 120 && <line x1={kx} y1={ky + 13} x2={kx} y2="150" stroke="#F8FAFC" strokeOpacity=".3" strokeWidth="2" />}
       <circle cx={rx} cy={ry} r="12" fill="#0B1220" stroke="#475569" strokeWidth="3" />
       <circle cx={kx} cy={ky} r="19" fill="#2DD4BF" opacity=".25" />
       <circle cx={kx} cy={ky} r="11" fill="#F8FAFC" />
