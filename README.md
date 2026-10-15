@@ -62,7 +62,7 @@ Everything here creates billable resources. Destroy a stack when you finish (`te
 <details>
     <summary>Click to view CICD details</summary>
 
-![Infra](/theo-fig7-delivery.png)
+![Infra](/caps-delivery.png)
 
 </details>
 
