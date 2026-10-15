@@ -1,0 +1,64 @@
+/* ---------- Closing-title hover lens (ui/titleLens.ts) ----------
+   Inside the lens the real title is masked away and its outline twin shows instead; the dots and hairlines
+   are drawn on a canvas. Without `.is-lensing` none of this is in effect and the title is plain text. */
+
+.title-lens {
+  position: absolute;
+  z-index: 2;
+  pointer-events: none;
+}
+.title-lens-twin {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  margin: 0;
+  -webkit-user-select: none;
+  user-select: none;
+  pointer-events: none;
+  -webkit-text-stroke: max(1.2px, 0.0085em) rgb(248 250 252 / 0.92);
+  -webkit-mask-image: radial-gradient(
+    circle calc(var(--lens-r, 0px) * 1.16) at var(--lens-x, 50%) var(--lens-y, 50%),
+    #000 0,
+    #000 calc(var(--lens-r, 0px) * 0.66),
+    transparent calc(var(--lens-r, 0px) * 1.16)
+  );
+  mask-image: radial-gradient(
+    circle calc(var(--lens-r, 0px) * 1.16) at var(--lens-x, 50%) var(--lens-y, 50%),
+    #000 0,
+    #000 calc(var(--lens-r, 0px) * 0.66),
+    transparent calc(var(--lens-r, 0px) * 1.16)
+  );
+}
+.title-lens-twin,
+.title-lens-twin * {
+  -webkit-text-fill-color: transparent;
+  text-shadow: none;
+}
+.title-lens-twin em {
+  -webkit-text-stroke-color: var(--accent);
+}
+
+/* The hole under the lens: transparent in the middle, a soft ring back to solid letters. */
+.hero-title.is-lensing {
+  -webkit-mask-image: radial-gradient(
+    circle var(--lens-r, 0px) at var(--lens-x, 50%) var(--lens-y, 50%),
+    transparent 0,
+    transparent calc(var(--lens-r, 0px) * 0.58),
+    #000 var(--lens-r, 0px)
+  );
+  mask-image: radial-gradient(
+    circle var(--lens-r, 0px) at var(--lens-x, 50%) var(--lens-y, 50%),
+    transparent 0,
+    transparent calc(var(--lens-r, 0px) * 0.58),
+    #000 var(--lens-r, 0px)
+  );
+}
+
+.title-lens-canvas {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: calc(var(--z-hud) + 5);
+  pointer-events: none;
+}
