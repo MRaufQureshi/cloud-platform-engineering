@@ -8,6 +8,7 @@ import './styles/hud.css'
 import './styles/simulator.css'
 import './styles/fleet.css'
 import './styles/sound.css'
+import './styles/lens.css'
 
 import { initAppLink } from './appLink'
 import { gsap } from 'gsap'
@@ -22,6 +23,7 @@ import { createLoader } from './ui/loader.ts'
 import { initCursor } from './ui/cursor.ts'
 import { initMagnetic } from './ui/magnetic.ts'
 import { initClosingTitle, initReveals, revealHeadline, revealHeroRest } from './ui/reveal.ts'
+import { initTitleLens } from './ui/titleLens.ts'
 import { initRail } from './ui/rail.ts'
 import { initDayHud } from './ui/dayHud.ts'
 import { initSimulator } from './ui/simulator.ts'
@@ -118,7 +120,9 @@ async function boot(): Promise<void> {
   initReveals(quality.reducedMotion)
   initSimulator(quality.reducedMotion)
   initSections(director, scroll, quality.reducedMotion)
-  if (director && joinParticles && joinTitle) initClosingTitle(director, joinTitle)
+  // The hover lens needs the finished title: after the swarm has handed over, or, without the swarm, after the character rise.
+  if (director && joinParticles && joinTitle) initClosingTitle(director, joinTitle, () => initTitleLens(joinTitle, quality.reducedMotion))
+  else if (joinTitle) window.setTimeout(() => initTitleLens(joinTitle, quality.reducedMotion), 3000)
   initDayHud(director)
   initCursor(quality.reducedMotion)
   initMagnetic(quality.reducedMotion)
