@@ -35,6 +35,16 @@ delete the leftover `terraform.tfstate` in `infra/prerequisites/` and
 
 ---
 
+## Architecture Diagram
+
+<details>
+<summary>Click to view complete infrastructure architecture</summary>
+
+![Login](/capstone/theo-architecture-figure-8-16x9.png)
+
+</details>
+
+
 ## Logging in to the demo
 
 The login is Amazon Cognito. Terraform creates one demo user and a random one-time password.
@@ -42,7 +52,7 @@ The login is Amazon Cognito. Terraform creates one demo user and a random one-ti
 <details>
 <summary>Click to view login screen</summary>
 
-![Login](/capstone/Login%20with%20Theo.png)
+![Login](/capstone/login_with_theo.png)
 
 </details>
 
