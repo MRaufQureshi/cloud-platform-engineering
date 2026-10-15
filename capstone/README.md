@@ -5,10 +5,6 @@ through GitHub Actions. Virtual smart-home boxes (EV + solar + meter) talk to
 AWS IoT Core; a cloud optimizer schedules EV charging and discharging against
 hourly electricity prices; a React dashboard behind Cognito shows the savings.
 
-The business case and research behind it are in [T.H.E.O.md](T.H.E.O.md). The
-topology is in [T.H.E.O.ARCHITECTURE.md](T.H.E.O.ARCHITECTURE.md) and the build
-order in [T.H.E.O.BUILD.SPEC.md](T.H.E.O.BUILD.SPEC.md).
-
 ---
 
 ## Quickstart
@@ -17,7 +13,7 @@ order in [T.H.E.O.BUILD.SPEC.md](T.H.E.O.BUILD.SPEC.md).
 `make`. Docker and Node arrive in the phases that need them.
 
 ```bash
-make -C capstone check-account   # must print 464447071956
+make -C capstone check-account   # must print you account no.
 ```
 
 Three steps, always in this order:
@@ -26,7 +22,7 @@ Three steps, always in this order:
 |---|---|---|---|
 | 1 | `make -C capstone prerequisites` | GitHub OIDC provider + CI roles | local |
 | 2 | `make -C capstone bootstrap` | S3 bucket for Terraform state | local |
-| 3 | `make -C capstone init apply` | THEO itself | S3 |
+| 3 | `make -C capstone init apply` or GitHub: Actions → T.H.E.O. Infra Run | THEO itself | S3 |
 
 Steps 1 and 2 print the exact follow-up commands (the `gh variable set` lines
 and the `backend.lab.hcl` line). The full checklist, including the three GitHub
@@ -42,6 +38,13 @@ delete the leftover `terraform.tfstate` in `infra/prerequisites/` and
 ## Logging in to the demo
 
 The login is Amazon Cognito. Terraform creates one demo user and a random one-time password.
+
+<details>
+<summary>Click to view login screen</summary>
+
+![Login](/capstone/Login%20with%20Theo.png)
+
+</details>
 
 ```bash
 cd capstone/infra/theo
@@ -76,8 +79,7 @@ commands are in [infra/theo/README.md](infra/theo/README.md) under "Testing Phas
 
 ## The morning after a account wipe
 
-The account removes parts of the stack overnight (and the 13:05 price schedule
-has not run yet at 9:00). To bring the demo back, in this order:
+The account removes parts of the stack overnight. To bring the demo back, in this order:
 
 | # | Step | Command | Why |
 |---|---|---|---|
@@ -106,18 +108,3 @@ capstone/
 │   └── theo/            step 3: the platform (modules/ added phase by phase)
 └── apps/                simulator, optimizer, lambdas, frontend, observability
 ```
-
-## Build phases
-
-| Phase | Adds | Status |
-|---|---|---|
-| 0 | prerequisites, bootstrap, `theo` skeleton, CI hooks | done |
-| 1 | network + data | done (48 resources) |
-| 2 | IoT + simulator | done (33 resources) |
-| 3 | optimizer (ECS Fargate, HiGHS) + SQS + Rule B + T.H.E.O. App Deploy | done (12 resources) |
-| 4 | prices (EventBridge + Lambda) + forecast stub | done (12 resources) |
-| 5 | API + auth (Cognito, API Gateway JWT, API Lambda) | done (22 resources) |
-| 6 | frontend (React on a private S3 bucket + CloudFront) | done (7 resources) |
-| 6b | landing website: private S3 bucket + CloudFront (HTTPS); its "Simulator" button opens the web app | done |
-| 7 | observability + security (Prometheus, Grafana, alarms, CloudTrail, Inspector) | done (25 resources + 1 changed) |
-| 8 | demo polish + destroy rehearsal | |
