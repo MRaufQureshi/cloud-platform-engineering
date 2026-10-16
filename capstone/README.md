@@ -118,3 +118,35 @@ capstone/
 │   └── theo/            step 3: the platform (modules/ added phase by phase)
 └── apps/                simulator, optimizer, lambdas, frontend, observability
 ```
+
+## AWS services used
+
+| Service | What we use it for |
+|---|---|
+| VPC (subnets, route tables, internet gateway) | The private network everything runs in |
+| NAT gateway | Lets the private optimizer reach the IoT data endpoint |
+| Security groups | Firewalls that name which service may reach which |
+| VPC endpoints | Private paths to ECR, Logs, SQS, S3 and DynamoDB |
+| IAM | One least-privilege role per service |
+| AWS IoT Core | The MQTT broker the simulated homes talk to; its rules write to DynamoDB and SQS |
+| EC2 | Two small servers: the home simulator, and Prometheus plus Grafana |
+| DynamoDB | State, settings, schedules, prices, savings and telemetry |
+| SQS (with a dead-letter queue) | The "please re-plan" inbox the optimizer reads |
+| ECR | Stores the optimizer's container image |
+| ECS Fargate | Runs the optimizer container with no server to manage |
+| Lambda | Fetches daily prices, answers the web app's API calls, and a forecast stub |
+| EventBridge | Starts the price Lambda every day at 13:05 UTC |
+| Cognito | Sign-in for the web app |
+| API Gateway | The public API that checks the login token and calls the Lambda |
+| S3 | Hosts the web app and landing site, and holds code, prices and audit logs |
+| CloudFront | HTTPS front for the web app and landing site |
+| Application Load Balancer | Puts Grafana behind a single-IP door |
+| CloudWatch | Logs, metrics and the four alarms |
+| SNS | Emails you when an alarm fires |
+| CloudTrail | Audit log of every action in the account |
+| Inspector | Scans EC2, container images and Lambda for known vulnerabilities |
+| Secrets Manager | Stores the Grafana admin password |
+| Systems Manager (SSM) | Shell access without SSH keys, and the device certificates |
+| Terraform, GitHub Actions (OIDC), Ansible | Build the infrastructure, deploy the apps, configure the two servers |
+
+For a click-by-click guide to each service, see [CONSOLE-GUIDE.md](CONSOLE-GUIDE.md).
