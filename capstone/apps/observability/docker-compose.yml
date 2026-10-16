@@ -11,6 +11,17 @@ services:
       - /opt/theo/observability/targets:/etc/prometheus/targets:ro
       - prometheus-data:/prometheus
 
+  # Opens the websites and pings the simulator for Prometheus. Needs NET_RAW for ping.
+  blackbox:
+    image: prom/blackbox-exporter:v0.25.0
+    network_mode: host
+    restart: always
+    cap_add:
+      - NET_RAW
+    command: ["--config.file=/etc/blackbox/blackbox.yml"]
+    volumes:
+      - /opt/theo/observability/blackbox.yml:/etc/blackbox/blackbox.yml:ro
+
   grafana:
     image: grafana/grafana:11.3.0
     network_mode: host
@@ -22,6 +33,7 @@ services:
       - /opt/theo/observability/grafana/datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml:ro
       - /opt/theo/observability/grafana/dashboards.yml:/etc/grafana/provisioning/dashboards/dashboards.yml:ro
       - /opt/theo/observability/grafana/theo-dashboard.json:/var/lib/grafana/dashboards/theo-dashboard.json:ro
+      - /opt/theo/observability/grafana/website.json:/var/lib/grafana/dashboards/website.json:ro
       - grafana-data:/var/lib/grafana
 
 volumes:

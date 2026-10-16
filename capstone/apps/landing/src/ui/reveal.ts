@@ -139,13 +139,15 @@ export function revealHeadline(el: HTMLElement, reducedMotion: boolean, afterSwa
  * Closing call to action: the moment the title itself scrolls into view (its top at 88% of the viewport) the
  * particle swarm converges into it, the real (accessible) DOM title fades in on top and the particles dissolve
  * behind it, so the visitor watches the letters form. Runs once; scrolling away and back simply shows the
- * title. The caller has hidden the title (opacity 0) and prepared the swarm.
+ * title. The caller has hidden the title (opacity 0) and prepared the swarm. `onShown` is called once the real
+ * title is showing for good (it starts the hover lens, which must not touch a title that is still animating).
  */
-export function initClosingTitle(director: Director, title: HTMLElement): void {
+export function initClosingTitle(director: Director, title: HTMLElement, onShown?: () => void): void {
   const closing = director.closing
   const section = title.closest<HTMLElement>('section')
   if (!closing) {
     title.style.opacity = '1'
+    onShown?.()
     return
   }
   let started = false
@@ -163,6 +165,7 @@ export function initClosingTitle(director: Director, title: HTMLElement): void {
         title.style.opacity = '1' // whatever happened, the real title ends up showing
         closing.handOver()
         window.setTimeout(() => section?.classList.remove('is-assembling'), 600)
+        onShown?.()
       }
     })()
   }
@@ -175,6 +178,7 @@ export function initClosingTitle(director: Director, title: HTMLElement): void {
       if (started) return
       started = true
       title.style.opacity = '1'
+      onShown?.()
     },
   })
 }

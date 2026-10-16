@@ -12,6 +12,8 @@ locals {
     "grafana/datasources.yml",
     "grafana/dashboards.yml",
     "grafana/theo-dashboard.json",
+    "grafana/website.json",
+    "blackbox.yml",
   ]
 }
 
@@ -26,9 +28,13 @@ resource "aws_s3_object" "config" {
 
 # prometheus.yml needs the simulator's address, so Terraform fills it in first.
 resource "aws_s3_object" "prometheus" {
-  bucket  = var.data_bucket_name
-  key     = "observability/prometheus.yml"
-  content = templatefile("${var.code_dir}/prometheus.yml.tpl", { simulator_ip = var.simulator_private_ip })
+  bucket = var.data_bucket_name
+  key    = "observability/prometheus.yml"
+  content = templatefile("${var.code_dir}/prometheus.yml.tpl", {
+    simulator_ip = var.simulator_private_ip
+    landing_url  = var.landing_url
+    app_url      = var.app_url
+  })
 }
 
 resource "aws_instance" "observability" {
