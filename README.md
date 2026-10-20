@@ -1,12 +1,12 @@
 # cloud-platform-engineering
 
-Hands-on AWS platform engineering, built with Terraform and deployed through GitHub Actions. Each folder is a small, working stack with its own README that explains what it builds and what you learn from it. The repo ends in a capstone: an IoT energy optimizer called **T.H.E.O.**
+AWS cloud engineering, built with Terraform and deployed through GitHub Actions. Each folder is a small, working stack with its own README that explains what it builds, showcases my skills and what you learn from it. The repo ends in a huge capstone project: an IoT energy optimizer called **T.H.E.O.**
 
-> Built and tested in `us-east-1`. It is a learning project, not production code: defaults favour low cost and easy teardown.
+> This repo is to showcase the skill set. It is a learning project, not production code: defaults favour low cost and easy teardown.
 
 ## The capstone: T.H.E.O.
 
-Virtual smart homes (EV, solar, smart meter) send data to AWS IoT Core. A cloud optimizer plans when to charge or discharge the car against hourly electricity prices, and a web app behind a login shows the savings. It comes with a landing site, Grafana dashboards, alarms and a CI/CD pipeline.
+Virtual smart homes (EV, solar, smart meter) send data to AWS IoT Core. A cloud optimizer plans when to "charge" or "discharge" the car against hourly electricity prices, and a web app behind a login (AWS cognito) shows the savings. It comes with a landing site, Grafana dashboards, alarms and a CI/CD pipeline.
 
 **Start here:** [capstone/README.md](capstone/README.md). It has the quickstart, the demo login and a checklist for rebuilding after a lab wipe.
 
@@ -24,7 +24,7 @@ Virtual smart homes (EV, solar, smart meter) send data to AWS IoT Core. A cloud 
 
 Stacks `scaling` and `rds` read `core`'s state, so apply `core` first. `ecs-fargate` and `capstone` stands alone.
 
-## Before you run anything
+## If you plan to run then before you run anything
 
 Some identities (the GitHub OIDC provider, CI roles) must exist before Terraform runs. They are deliberately not managed by Terraform. Read [PREREQUISITES.md](PREREQUISITES.md) first.
 
