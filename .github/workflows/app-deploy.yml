@@ -3,11 +3,15 @@ name: App Deploy
 on:
   push:
     branches: [main] # when something merges on main then deploy
-    # The THEO capstone has its own workflows (theo-*.yml). A push that touches
-    # ONLY capstone files must not deploy this app.
+    # A push that touches ONLY these files must not deploy this app:
+    #   - the THEO capstone (it has its own workflows, theo-*.yml)
+    #   - documentation (.md) and images, which never change what runs
     paths-ignore:
       - "capstone/**"
       - ".github/workflows/theo-*.yml"
+      - "**.md"
+      - "**.png"
+      - "**.svg"
 
   workflow_dispatch: # manual "Run workflow" button
   pull_request:
@@ -15,6 +19,9 @@ on:
     paths-ignore:
       - "capstone/**"
       - ".github/workflows/theo-*.yml"
+      - "**.md"
+      - "**.png"
+      - "**.svg"
 
 permissions:
   id-token: write           # ask GitHub for a signed OIDC token, without it: "Credentials could not be loaded"
