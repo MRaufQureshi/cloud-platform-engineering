@@ -298,3 +298,13 @@
     min-width: 44px;
   }
 }
+
+/* Language toggle: the other language's short code, set like the site's small labels. */
+.lang-toggle {
+  min-width: 40px;
+  padding: 0 11px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+}

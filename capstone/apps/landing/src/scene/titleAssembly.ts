@@ -61,6 +61,11 @@ export class TitleAssembly {
     this.aspect = h.rect.height / Math.max(1, h.rect.width)
   }
 
+  /** The title's words changed (a language switch): read the element again and lay the particles out anew. */
+  async refresh(): Promise<void> {
+    if (this.el) await this.prepare(this.el, this.options)
+  }
+
   /** Starts the assembly clock; resolves once the particles form the title. */
   play(seconds: number): Promise<void> {
     this.rate = 1 / Math.max(0.1, seconds)

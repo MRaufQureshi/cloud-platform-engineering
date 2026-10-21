@@ -5,6 +5,7 @@
 // Both scroll to the chapter and move keyboard focus into it.
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import type { Scroll } from '../core/scroll.ts'
+import { onLangChange, t } from '../i18n/lang.ts'
 
 export function initRail(rail: HTMLElement, scroll: Scroll): void {
   const sections = [...document.querySelectorAll<HTMLElement>('[data-chapter]')]
@@ -14,15 +15,15 @@ export function initRail(rail: HTMLElement, scroll: Scroll): void {
     sec.focus({ preventScroll: true })
   }
 
+  // Chapter names come from data-label, which the language switch rewrites; relabel() reads them again.
+  const labelOf = (sec: HTMLElement, i: number) => sec.dataset.label ?? t('rail.chapter', { n: i + 1 })
   const list = document.createElement('ol')
-  const ticks = sections.map((sec, i) => {
+  const ticks = sections.map((sec) => {
     const li = document.createElement('li')
     const btn = document.createElement('button')
     btn.type = 'button'
     btn.className = 'rail-tick'
-    const label = sec.dataset.label ?? `Chapter ${i + 1}`
-    btn.innerHTML = `<span class="rail-label">${label}</span><span class="rail-dot" aria-hidden="true"></span>`
-    btn.setAttribute('aria-label', `Go to: ${label}`)
+    btn.innerHTML = `<span class="rail-label"></span><span class="rail-dot" aria-hidden="true"></span>`
     btn.addEventListener('click', () => go(sec))
     li.append(btn)
     list.append(li)
@@ -40,7 +41,7 @@ export function initRail(rail: HTMLElement, scroll: Scroll): void {
       const li = document.createElement('li')
       const a = document.createElement('a')
       a.href = `#${sec.id}`
-      a.innerHTML = `<span class="mono">${String(i).padStart(2, '0')}</span><span>${sec.dataset.label ?? sec.id}</span>`
+      a.innerHTML = `<span class="mono">${String(i).padStart(2, '0')}</span><span class="menu-label"></span>`
       a.addEventListener('click', (e) => {
         e.preventDefault()
         e.stopPropagation()
@@ -72,6 +73,20 @@ export function initRail(rail: HTMLElement, scroll: Scroll): void {
       if (!menu.hidden && !menu.contains(e.target as Node) && e.target !== toggle) close()
     })
   }
+
+  const relabel = () => {
+    sections.forEach((sec, i) => {
+      const label = labelOf(sec, i)
+      const tick = ticks[i]
+      const text = tick.querySelector('.rail-label')
+      if (text) text.textContent = label
+      tick.setAttribute('aria-label', t('rail.goto', { label }))
+      const menuText = links[i]?.querySelector('.menu-label')
+      if (menuText) menuText.textContent = sec.dataset.label ?? sec.id
+    })
+  }
+  relabel()
+  onLangChange(relabel)
 
   const setActive = (i: number) => {
     ticks.forEach((b, j) => {

@@ -10,8 +10,25 @@ import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { SplitText } from 'gsap/SplitText'
 import type { Director } from '../director.ts'
+import { fmt, onBeforeLangChange, onLangChange } from '../i18n/lang.ts'
 
 gsap.registerPlugin(ScrollTrigger, SplitText)
+
+/**
+ * Every live SplitText. The text of a split element is rewritten when the language changes, so the splits are
+ * undone first and made again after. A split keeps the time of its tween when it is reverted and re-split, so a
+ * heading that has already risen stays risen, and one that has not still waits for its scroll trigger.
+ */
+const splits: Array<{ split: SplitText; vars: SplitText.Vars }> = []
+onBeforeLangChange(() => splits.forEach((s) => s.split.revert()))
+onLangChange(() => splits.forEach((s) => s.split.split(s.vars)))
+
+/** SplitText.create, remembered so the language switch can undo and redo it. */
+function splitText(el: HTMLElement, vars: SplitText.Vars): SplitText {
+  const split = SplitText.create(el, vars)
+  splits.push({ split, vars })
+  return split
+}
 
 export function initReveals(reducedMotion: boolean): void {
   initCounters(reducedMotion)
@@ -21,7 +38,7 @@ export function initReveals(reducedMotion: boolean): void {
     const chars = el.dataset.reveal === 'chars'
     // Paragraph text must stay readable: only headings get SplitText's aria-label treatment.
     const heading = /^H[1-6]$/.test(el.tagName)
-    SplitText.create(el, {
+    splitText(el, {
       type: chars ? 'lines,chars' : 'lines',
       mask: 'lines',
       linesClass: 'split-line',
@@ -79,6 +96,7 @@ export function initReveals(reducedMotion: boolean): void {
 
 /** Count-ups animate visible digits only; assistive tech always reads the final value. */
 function initCounters(reducedMotion: boolean): void {
+  const counters: Array<{ el: HTMLElement; to: number; shown: HTMLElement; spoken: HTMLElement; state: { v: number } }> = []
   for (const el of document.querySelectorAll<HTMLElement>('[data-count-to]')) {
     const to = Number(el.dataset.countTo)
     const final = formatCount(el, to)
@@ -88,11 +106,12 @@ function initCounters(reducedMotion: boolean): void {
     spoken.className = 'sr-only'
     spoken.textContent = final
     el.replaceChildren(shown, spoken)
+    const state = { v: reducedMotion ? to : 0 }
+    counters.push({ el, to, shown, spoken, state })
     if (reducedMotion) {
       shown.textContent = final
       continue
     }
-    const state = { v: 0 }
     shown.textContent = formatCount(el, 0)
     gsap.to(state, {
       v: to,
@@ -104,12 +123,18 @@ function initCounters(reducedMotion: boolean): void {
       },
     })
   }
+  // The number format (and the % suffix, an attribute the language switch rewrites) follows the language.
+  onLangChange(() => {
+    for (const c of counters) {
+      c.spoken.textContent = formatCount(c.el, c.to)
+      c.shown.textContent = formatCount(c.el, c.state.v)
+    }
+  })
 }
 
 export function formatCount(el: HTMLElement, v: number): string {
   const decimals = Number(el.dataset.decimals ?? 0)
-  const n = v.toLocaleString('en-GB', { minimumFractionDigits: decimals, maximumFractionDigits: decimals })
-  return `${el.dataset.prefix ?? ''}${n}${el.dataset.suffix ?? ''}`
+  return `${el.dataset.prefix ?? ''}${fmt.num(v, decimals)}${el.dataset.suffix ?? ''}`
 }
 
 /**
@@ -124,7 +149,7 @@ export function revealHeadline(el: HTMLElement, reducedMotion: boolean, afterSwa
   if (afterSwarm) return new Promise((resolve) => void gsap.to(el, { opacity: 1, duration: 0.55, ease: 'power2.out', onComplete: () => resolve() }))
   el.style.opacity = '1'
   return new Promise((resolve) => {
-    SplitText.create(el, {
+    splitText(el, {
       type: 'lines,chars',
       mask: 'lines',
       linesClass: 'split-line',
