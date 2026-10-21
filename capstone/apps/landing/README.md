@@ -10,6 +10,7 @@ npm test           # simulation tests (Node ≥ 22.6)
 ```
 
 - **Brand name:** T.H.E.O. ("The Holistic Energy Orchestrator"). `src/config.ts` is the source for the `.brand-mark` spans and the day HUD; `index.html` also writes it statically (title, meta description, aria-labels, footer), so update both when renaming.
+- **Languages:** English (default) and German, switched live from the top bar and remembered per visitor. English text lives in `index.html`; German is in `src/i18n/de.ts` (page copy, keyed by `data-i18n`) and `src/i18n/strings.ts` (text that scripts generate). `npm test` checks that the two stay in step.
 - **Waitlist form:** no backend is connected. Submissions stay in the visitor's browser (`localStorage`), and the form says so. Connect a form endpoint in `src/ui/sections.ts` (`initJoin`) before launch.
 - **Hosting:** `dist/` is fully static and works on Vercel, Netlify, GitHub Pages or any static host.
 
