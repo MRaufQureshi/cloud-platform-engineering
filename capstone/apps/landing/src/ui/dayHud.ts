@@ -5,9 +5,9 @@
 import * as THREE from 'three'
 import type { Director } from '../director.ts'
 import { costSoFar, sampleDay } from '../director.ts'
-import { BRAND } from '../config.ts'
 import { PRICE_EUR_KWH } from '../sim/model.ts'
 import type { HourFlow } from '../sim/v2h.ts'
+import { fmt, onLangChange, t } from '../i18n/lang.ts'
 
 /** The three most expensive hours of the illustrative tariff count as "peak". */
 const PEAK_CT = Math.round([...PRICE_EUR_KWH].sort((a, b) => b - a)[2] * 100)
@@ -15,15 +15,15 @@ const PEAK_CT = Math.round([...PRICE_EUR_KWH].sort((a, b) => b - a)[2] * 100)
 function actionLabel(step: HourFlow, pv: number, view: 'smart' | 'baseline'): string {
   switch (step.action) {
     case 'away':
-      return pv > 0.05 ? 'Car away · solar runs the house' : 'Car away · home on the grid'
+      return t(pv > 0.05 ? 'hud.away.solar' : 'hud.away.grid')
     case 'solar-charge':
-      return 'Charging the car from the sun'
+      return t('hud.solarCharge')
     case 'grid-charge':
-      return view === 'baseline' ? 'Charging at full power on arrival' : 'Topping up while power is cheap'
+      return t(view === 'baseline' ? 'hud.gridCharge.baseline' : 'hud.gridCharge.smart')
     case 'v2h':
-      return 'Car powering the home'
+      return t('hud.v2h')
     default:
-      return pv > 0.05 ? 'Home on solar & grid · car resting' : 'Home on the grid · car resting'
+      return t(pv > 0.05 ? 'hud.rest.solar' : 'hud.rest.grid')
   }
 }
 
@@ -47,22 +47,22 @@ export function initDayHud(director: Director | null): void {
   const peakY = yOf(PEAK_CT / 100)
   hud.innerHTML = `
     <div class="hud-panel">
-      <div class="hud-toggle" role="group" aria-label="Compare plans">
-        <button type="button" data-view="smart" aria-pressed="true">With ${BRAND}</button>
-        <button type="button" data-view="baseline" aria-pressed="false">Without</button>
+      <div class="hud-toggle" role="group" aria-label="${t('hud.compare')}" data-t-attr="aria-label:hud.compare">
+        <button type="button" data-view="smart" aria-pressed="true" data-t="hud.with">${t('hud.with')}</button>
+        <button type="button" data-view="baseline" aria-pressed="false" data-t="hud.without">${t('hud.without')}</button>
       </div>
       <div class="hud-clock"><span data-k="clock">06:00</span><span class="hud-sub" data-k="phase">Morning</span></div>
       <dl class="hud-metrics">
-        <div><dt>Price</dt><dd><span data-k="price">27</span><small>ct/kWh</small></dd></div>
-        <div class="hud-opt"><dt>Solar</dt><dd><span data-k="pv">0.0</span><small>kW</small></dd></div>
-        <div class="hud-opt"><dt>Home</dt><dd><span data-k="load">0.0</span><small>kW</small></dd></div>
-        <div><dt>Car</dt><dd><span data-k="soc">86</span><small>%</small><span class="hud-bar"><span data-k="socbar"></span></span></dd></div>
+        <div><dt data-t="hud.price">${t('hud.price')}</dt><dd><span data-k="price">27</span><small>ct/kWh</small></dd></div>
+        <div class="hud-opt"><dt data-t="hud.solar">${t('hud.solar')}</dt><dd><span data-k="pv">0.0</span><small>kW</small></dd></div>
+        <div class="hud-opt"><dt data-t="hud.home">${t('hud.home')}</dt><dd><span data-k="load">0.0</span><small>kW</small></dd></div>
+        <div><dt data-t="hud.car">${t('hud.car')}</dt><dd><span data-k="soc">86</span><small>%</small><span class="hud-bar"><span data-k="socbar"></span></span></dd></div>
       </dl>
       <p class="hud-action"><span class="hud-dot" data-k="dot"></span><span data-k="action">…</span></p>
-      <p class="hud-bill"><span class="dim">Net cost since 06:00</span><strong data-k="bill">€0.00</strong></p>
+      <p class="hud-bill"><span class="dim" data-t="hud.bill">${t('hud.bill')}</span><strong data-k="bill">€0.00</strong></p>
       <p class="hud-bill-other dim" data-k="billOther"></p>
       <div class="hud-ribbon" aria-hidden="true">
-        <p class="hud-ribbon-label">Price · ct/kWh</p>
+        <p class="hud-ribbon-label" data-t="hud.ribbon">${t('hud.ribbon')}</p>
         <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">
           <rect x="0" y="0" width="${W}" height="${peakY.toFixed(1)}" fill="rgba(251,113,133,0.10)"/>
           <polyline points="${pts.join(' ')}" fill="none" stroke="rgba(226,232,240,0.85)" stroke-width="1.6" vector-effect="non-scaling-stroke"/>
@@ -70,10 +70,10 @@ export function initDayHud(director: Director | null): void {
         </svg>
         <div class="hud-ribbon-axis"><span>00</span><span>06</span><span>12</span><span>18</span><span>24</span></div>
       </div>
-      <ul class="hud-legend" aria-label="Energy colours in the scene">
-        <li><span class="dot dot-solar"></span>From the sun</li>
-        <li><span class="dot dot-energy"></span>From the car battery</li>
-        <li><span class="dot dot-grid"></span>From the grid</li>
+      <ul class="hud-legend" aria-label="${t('hud.legend.aria')}" data-t-attr="aria-label:hud.legend.aria">
+        <li><span class="dot dot-solar"></span><span data-t="hud.legend.sun">${t('hud.legend.sun')}</span></li>
+        <li><span class="dot dot-energy"></span><span data-t="hud.legend.car">${t('hud.legend.car')}</span></li>
+        <li><span class="dot dot-grid"></span><span data-t="hud.legend.grid">${t('hud.legend.grid')}</span></li>
       </ul>
     </div>`
   const q = (k: string) => hud.querySelector(`[data-k="${k}"]`) as HTMLElement
@@ -106,13 +106,14 @@ export function initDayHud(director: Director | null): void {
   }
 
   // 3D-anchored labels for the four energy nodes
-  const names: Record<string, string> = { pv: 'Solar', home: 'Home', car: 'Car', grid: 'Grid' }
+  const nodes = ['pv', 'home', 'car', 'grid'] as const
   const labels = new Map<string, HTMLElement>()
   if (labelsRoot) {
-    for (const k of Object.keys(names)) {
+    for (const k of nodes) {
       const l = document.createElement('span')
       l.className = `scene-label scene-label-${k}`
-      l.textContent = names[k]
+      l.dataset.t = `node.${k}`
+      l.textContent = t(`node.${k}`)
       labelsRoot.append(l)
       labels.set(k, l)
     }
@@ -135,7 +136,9 @@ export function initDayHud(director: Director | null): void {
   for (const b of toggles) b.addEventListener('click', () => setView(b.dataset.view === 'baseline' ? 'baseline' : 'smart'))
 
   // Summer days with rooftop solar often end in credit: say so instead of showing a minus sign.
-  const euro = (x: number) => (x < -0.005 ? `€${Math.abs(x).toFixed(2)} credit` : `€${Math.max(0, x).toFixed(2)}`)
+  const euro = (x: number) => (x < -0.005 ? t('hud.credit', { amount: fmt.eur(Math.abs(x), 2) }) : fmt.eur(Math.max(0, x), 2))
+  // The readout keeps what it last wrote; a new language has to be written again.
+  onLangChange(() => shown.clear())
   const ease = (t: number) => t * t * (3 - 2 * t)
   let lastCaption = -1
   let wasOn = false
@@ -170,21 +173,24 @@ export function initDayHud(director: Director | null): void {
     const hours = Math.floor(hh)
     const mins = Math.floor((hh - hours) * 60)
     text(el.clock, `${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}`)
-    text(el.phase, hh < 5 ? 'Night' : hh < 10.5 ? 'Morning' : hh < 12 ? 'Late morning' : hh < 15 ? 'Midday' : hh < 18 ? 'Afternoon' : hh < 22 ? 'Evening' : 'Night')
+    text(
+      el.phase,
+      t(hh < 5 ? 'hud.phase.night' : hh < 10.5 ? 'hud.phase.morning' : hh < 12 ? 'hud.phase.lateMorning' : hh < 15 ? 'hud.phase.midday' : hh < 18 ? 'hud.phase.afternoon' : hh < 22 ? 'hud.phase.evening' : 'hud.phase.night'),
+    )
     const ct = Math.round(step.price * 100)
     text(el.price, String(ct))
     style(el.price, 'color', ct >= PEAK_CT ? 'var(--peak)' : 'var(--text)')
-    text(el.pv, pv.toFixed(1))
-    text(el.load, load.toFixed(1))
+    text(el.pv, fmt.num(pv, 1))
+    text(el.load, fmt.num(load, 1))
     const soc = Math.round(director.state.soc * 100)
     text(el.soc, String(soc))
     style(el.socbar, 'width', `${soc}%`)
     const moving = director.state.drive > 0.02 && director.state.drive < 0.98
-    text(el.action, moving ? (hh < 12 ? 'Leaving for the day' : 'Arriving home, plugging in') : actionLabel(step, pv, director.view))
+    text(el.action, moving ? t(hh < 12 ? 'hud.leaving' : 'hud.arriving') : actionLabel(step, pv, director.view))
     const mine = costSoFar(director.plan, h, director.view)
     const other = costSoFar(director.plan, h, director.view === 'smart' ? 'baseline' : 'smart')
     text(el.bill, euro(mine))
-    text(el.billOther, director.view === 'smart' ? `${euro(other)} without planning` : `${euro(other)} with ${BRAND}`)
+    text(el.billOther, t(director.view === 'smart' ? 'hud.billOther.smart' : 'hud.billOther.baseline', { amount: euro(other) }))
     style(
       el.dot,
       'background',

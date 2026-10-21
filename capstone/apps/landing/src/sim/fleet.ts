@@ -76,9 +76,17 @@ export interface FleetOptions {
   end?: number
 }
 
-export interface VehicleHour {
-  action: FleetAction
+/** Why a vehicle does what it does. `reason` is the English sentence; the key and arguments let the UI say it in any language. */
+export type ReasonKey = 'road' | 'belowMin' | 'needs' | 'cheap' | 'lend' | 'leaves' | 'keep' | 'charged' | 'nearMin' | 'wait' | 'unplugged'
+export type ReasonArgs = Readonly<Record<string, string | number>>
+interface Why {
   reason: string
+  reasonKey: ReasonKey
+  reasonArgs?: ReasonArgs
+}
+
+export interface VehicleHour extends Why {
+  action: FleetAction
   /** State of charge at the start and end of the hour, 0–1. */
   socStart: number
   socEnd: number
@@ -138,12 +146,12 @@ export function departureAt(departHour: number, start = WINDOW_START): number {
 const pct = (v: number) => `${Math.round(v * 100)}%`
 export const clockLabel = (h: number) => `${String(Math.floor(h) % 24).padStart(2, '0')}:00`
 
-function holdReason(soc: number, tier: PriceTier, hoursLeft: number, keep: boolean): string {
-  if (hoursLeft <= LEND_MIN_HOURS) return `Leaves in ${hoursLeft} h — holding`
-  if (keep) return 'Grid at peak — keeping charge for the trip'
-  if (soc >= TOP_UP_BELOW - EPS) return 'Charged — holding'
-  if (tier === 'critical') return 'Grid at peak — near its minimum'
-  return 'Waiting for cheaper power'
+function holdReason(soc: number, tier: PriceTier, hoursLeft: number, keep: boolean): Why {
+  if (hoursLeft <= LEND_MIN_HOURS) return { reason: `Leaves in ${hoursLeft} h — holding`, reasonKey: 'leaves', reasonArgs: { h: hoursLeft } }
+  if (keep) return { reason: 'Grid at peak — keeping charge for the trip', reasonKey: 'keep' }
+  if (soc >= TOP_UP_BELOW - EPS) return { reason: 'Charged — holding', reasonKey: 'charged' }
+  if (tier === 'critical') return { reason: 'Grid at peak — near its minimum', reasonKey: 'nearMin' }
+  return { reason: 'Waiting for cheaper power', reasonKey: 'wait' }
 }
 
 /** One forward pass of the rules for a vehicle; `forced` hours charge, `keep` hours never lend. */
@@ -157,27 +165,27 @@ function runVehicle(v: FleetVehicle, s: Setup, forced: Set<number>, keep: Set<nu
     const hoursLeft = dep - h
     const lendable = tier === 'critical' && soc - v.minSoc >= LEND_HEADROOM - EPS && hoursLeft > LEND_MIN_HOURS
     let action: FleetAction = 'hold'
-    let reason = ''
+    let why: Why = { reason: '', reasonKey: 'wait' }
     let cap = 1
     let isForced = false
     if (hoursLeft <= 0) {
       action = 'away'
-      reason = 'On the road'
+      why = { reason: 'On the road', reasonKey: 'road' }
     } else if (soc < v.minSoc - EPS) {
       action = 'charge'
-      reason = 'Below minimum — charging'
+      why = { reason: 'Below minimum — charging', reasonKey: 'belowMin' }
     } else if (forced.has(h) && soc < target - EPS) {
       action = 'charge'
-      reason = `Needs ${pct(target)} by ${clockLabel(dep)} — charging`
+      why = { reason: `Needs ${pct(target)} by ${clockLabel(dep)} — charging`, reasonKey: 'needs', reasonArgs: { pct: Math.round(target * 100), clock: clockLabel(dep) } }
       cap = target
       isForced = true
     } else if (lendable && !keep.has(h)) {
       action = 'discharge'
     } else if (tier === 'off-peak' && soc < TOP_UP_BELOW - EPS) {
       action = 'charge'
-      reason = 'Cheap power — topping up'
+      why = { reason: 'Cheap power — topping up', reasonKey: 'cheap' }
     } else {
-      reason = holdReason(soc, tier, hoursLeft, lendable)
+      why = holdReason(soc, tier, hoursLeft, lendable)
     }
 
     let battery = 0
@@ -188,11 +196,11 @@ function runVehicle(v: FleetVehicle, s: Setup, forced: Set<number>, keep: Set<nu
     } else if (action === 'discharge') {
       battery = -Math.min(s.lendKwh, (soc - v.minSoc) * v.capacityKwh)
       grid = battery * s.eff
-      reason = `Grid at peak — lending ${Math.round(-grid)} kWh`
+      why = { reason: `Grid at peak — lending ${Math.round(-grid)} kWh`, reasonKey: 'lend', reasonArgs: { kwh: Math.round(-grid) } }
     }
     const socStart = soc
     soc = Math.min(1, Math.max(0, soc + battery / v.capacityKwh))
-    out.push({ action, reason, socStart, socEnd: soc, batteryKwh: battery, gridKwh: grid, forced: isForced })
+    out.push({ action, ...why, socStart, socEnd: soc, batteryKwh: battery, gridKwh: grid, forced: isForced })
   }
   return out
 }
@@ -271,9 +279,8 @@ export function simulateFleet(opts: FleetOptions = {}): FleetResult {
   return { vehicles, start: s.start, end: s.end, hours, departures, chargedKwh, lentKwh }
 }
 
-export interface VehicleSnapshot {
+export interface VehicleSnapshot extends Why {
   action: FleetAction
-  reason: string
   /** Interpolated state of charge, 0–1. */
   soc: number
   /** Charging energy comes from the grid: the depot model has no solar. */
@@ -318,9 +325,12 @@ export function sampleFleet(r: FleetResult, h: number): FleetSnapshot {
     const dep = r.departures[k].at
     const leave = dep === null || x.action !== 'hold' ? 0 : Math.min(1, Math.max(0, (t - (dep - LEAVE_HOURS)) / LEAVE_HOURS))
     const out = x.action === 'away' || leave > 0
+    const unplugging = x.action !== 'away' && leave > 0
     return {
       action: out ? 'away' : x.action,
-      reason: x.action !== 'away' && leave > 0 ? 'Unplugged — heading out' : x.reason,
+      reason: unplugging ? 'Unplugged — heading out' : x.reason,
+      reasonKey: unplugging ? 'unplugged' : x.reasonKey,
+      reasonArgs: unplugging ? undefined : x.reasonArgs,
       soc: x.socStart + (x.socEnd - x.socStart) * frac,
       source: 'grid',
       leave: x.action === 'away' ? 1 : leave,

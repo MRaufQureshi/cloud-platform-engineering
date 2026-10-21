@@ -5,6 +5,8 @@ import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import type { Director } from '../director.ts'
 import type { Scroll } from '../core/scroll.ts'
+import { fmt, onLangChange, t } from '../i18n/lang.ts'
+import type { StringKey } from '../i18n/strings.ts'
 
 const EV_STOCK = 2_034_260 // KBA, 1 Jan 2026
 const WALLBOX_KW = 7.4
@@ -71,6 +73,7 @@ function initStaticFlow(director: Director | null) {
     }
   }
   check()
+  onLangChange(check) // German runs longer: a chapter that fitted its stage may not any more
   let timer = 0
   addEventListener('resize', () => {
     clearTimeout(timer)
@@ -162,6 +165,11 @@ function initDemand(director: Director | null) {
   const W = 360
   const H = 170
   ghost?.setAttribute('d', demandPath(DEMAND_PEAK, W, H, false))
+  let coordinated = false
+  const paintState = () => {
+    if (state) state.textContent = t(coordinated ? 'demand.coordinated' : 'demand.uncoordinated')
+  }
+  onLangChange(paintState)
   let last = -1
   const draw = (t: number) => {
     if (Math.abs(t - last) < 0.002) return
@@ -170,7 +178,8 @@ function initDemand(director: Director | null) {
     line?.setAttribute('d', demandPath(v, W, H, false))
     area?.setAttribute('d', demandPath(v, W, H, true))
     fig.style.setProperty('--peak-mix', String(1 - t))
-    if (state) state.textContent = t > 0.6 ? 'Coordinated' : 'Uncoordinated'
+    coordinated = t > 0.6
+    paintState()
   }
   draw(0)
   ScrollTrigger.create({
@@ -250,13 +259,29 @@ function initTips(scroll: Scroll) {
   tip.addEventListener('pointerenter', () => clearTimeout(hideTimer))
   tip.addEventListener('pointerleave', hideSoon)
 
-  for (const el of document.querySelectorAll<HTMLElement>('abbr[data-tip]')) {
-    el.tabIndex = 0
-    el.addEventListener('pointerenter', () => show(el, el.dataset.tip ?? ''))
-    el.addEventListener('pointerleave', hideSoon)
-    el.addEventListener('focus', () => show(el, el.dataset.tip ?? ''))
-    el.addEventListener('blur', hideSoon)
-  }
+  // Glossary terms are rewritten when the language changes, so their listeners sit on the document.
+  const term = (target: EventTarget | null) => (target instanceof Element ? target.closest<HTMLElement>('abbr[data-tip]') : null)
+  const focusable = () => document.querySelectorAll<HTMLElement>('abbr[data-tip]').forEach((el) => (el.tabIndex = 0))
+  focusable()
+  onLangChange(() => {
+    hide()
+    focusable()
+  })
+  document.addEventListener('pointerover', (e) => {
+    const el = term(e.target)
+    if (el && el !== term(e.relatedTarget)) show(el, el.dataset.tip ?? '')
+  })
+  document.addEventListener('pointerout', (e) => {
+    const el = term(e.target)
+    if (el && el !== term(e.relatedTarget)) hideSoon()
+  })
+  document.addEventListener('focusin', (e) => {
+    const el = term(e.target)
+    if (el) show(el, el.dataset.tip ?? '')
+  })
+  document.addEventListener('focusout', (e) => {
+    if (term(e.target)) hideSoon()
+  })
 
   // Citations: show the source in place; "All sources" jumps to the footer list.
   document.addEventListener('click', (e) => {
@@ -273,7 +298,7 @@ function initTips(scroll: Scroll) {
     text.textContent = src.textContent?.trim() ?? ''
     const all = document.createElement('a')
     all.href = id
-    all.textContent = 'All sources'
+    all.textContent = t('src.all')
     all.addEventListener('click', (ev) => {
       ev.preventDefault()
       hide()
@@ -415,17 +440,22 @@ function initVpp(director: Director | null) {
   const gw = document.getElementById('vpp-gw')
   if (!input || !out || !gw) return
   const shown = { v: 0 }
+  const paintShare = () => {
+    out.textContent = fmt.pct(Number(input.value))
+    input.setAttribute('aria-valuetext', t('vpp.valuetext', { n: input.value }))
+    gw.textContent = fmt.num(shown.v, 1)
+  }
+  onLangChange(paintShare)
   const update = () => {
     const share = Number(input.value) / 100
-    out.textContent = `${input.value}%`
-    input.setAttribute('aria-valuetext', `${input.value} percent`)
+    paintShare()
     const target = (EV_STOCK * share * WALLBOX_KW) / 1e6
     gsap.to(shown, {
       v: target,
       duration: 0.6,
       ease: 'power3.out',
       onUpdate: () => {
-        gw.textContent = shown.v.toFixed(1)
+        gw.textContent = fmt.num(shown.v, 1)
       },
     })
     // The scene lights the same share of its cars.
@@ -661,6 +691,13 @@ function initJoin() {
   const status = document.getElementById('join-status')
   const email = document.getElementById('join-email') as HTMLInputElement | null
   if (!form || !status || !email) return
+  // The message on screen, so it can be said again in another language.
+  let message: StringKey | null = null
+  const say = (key: StringKey | null) => {
+    message = key
+    status.textContent = key ? t(key) : ''
+  }
+  onLangChange(() => say(message))
   const clear = () => {
     email.removeAttribute('aria-invalid')
     email.removeAttribute('aria-describedby')
@@ -672,7 +709,7 @@ function initJoin() {
     const ok = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value.trim())
     if (!ok) {
       status.classList.add('is-error')
-      status.textContent = 'Please enter a valid email address, like name@example.com.'
+      say('join.invalid')
       email.setAttribute('aria-invalid', 'true')
       email.setAttribute('aria-describedby', 'join-status')
       email.focus()
@@ -680,7 +717,7 @@ function initJoin() {
     }
     // Prototype: no backend is connected, and nothing is stored. Say so plainly.
     clear()
-    status.textContent = "Thanks. This prototype doesn't send or store anything yet; the pilot sign-up opens soon."
+    say('join.thanks')
     form.reset()
   })
 }

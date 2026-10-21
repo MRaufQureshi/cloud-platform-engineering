@@ -403,6 +403,8 @@ export interface Director {
   handOver(): void
   /** Re-read the hero headline's position (after it is revealed or re-laid out). */
   rereadHeadline(): void
+  /** Both particle headlines read their DOM twin's words again (after a language switch). */
+  retitle(): Promise<void>
   /**
    * The closing title (Join chapter) gets the same particle assembly as the hero: `prepare` once at boot,
    * `assemble` when the chapter approaches, `handOver` when the real title is showing. Null without the swarm
@@ -538,6 +540,13 @@ export function createDirector(world: World, reducedMotion: boolean): Director {
     },
     rereadHeadline() {
       void hero?.reread()
+    },
+    async retitle() {
+      try {
+        await Promise.all([hero?.refresh(), closing?.refresh()])
+      } catch (err) {
+        console.warn('Headline particles were not refreshed.', err)
+      }
     },
     closing:
       closing && joinSwarm
