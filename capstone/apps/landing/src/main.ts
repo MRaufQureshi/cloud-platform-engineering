@@ -25,6 +25,9 @@ import { initMagnetic } from './ui/magnetic.ts'
 import { initClosingTitle, initReveals, revealHeadline, revealHeroRest } from './ui/reveal.ts'
 import { initTitleLens } from './ui/titleLens.ts'
 import { initRail } from './ui/rail.ts'
+import { initLang, onLangChange, setLang, t, type Lang } from './i18n/lang.ts'
+import type { StringKey } from './i18n/strings.ts'
+import { initLangToggle } from './ui/langToggle.ts'
 import { initDayHud } from './ui/dayHud.ts'
 import { initSimulator } from './ui/simulator.ts'
 import { initSections } from './ui/sections.ts'
@@ -38,6 +41,8 @@ declare global {
     /** QA hook: jump to progress p (0–1) through a chapter (pinned chapters use their pin range). */
     __scrollToChapter?: (id: string, p: number) => void
     __director?: Director | null
+    /** QA hook: switch the page language without saving the choice. */
+    __setLang?: (lang: Lang) => void
   }
 }
 
@@ -48,6 +53,7 @@ function applyBrand(): void {
 }
 
 async function boot(): Promise<void> {
+  initLang() // first: remembers the English page, then shows the visitor's language before anything is measured
   applyBrand()
   const quality = detectQuality()
   const root = document.documentElement
@@ -127,6 +133,15 @@ async function boot(): Promise<void> {
   initCursor(quality.reducedMotion)
   initMagnetic(quality.reducedMotion)
   initAnchors(scroll)
+  initLangToggle()
+  // Registered last, so it runs after every module has redrawn its text: the page is a different length
+  // now, and the 3D headlines have to be read from the new words.
+  onLangChange(() => {
+    ScrollTrigger.refresh()
+    director?.measure()
+    void director?.retitle()
+  })
+  window.__setLang = (lang) => setLang(lang, false)
 
   window.__scrollToProgress = (p: number) => scroll.scrollToProgress(p, true)
   window.__scrollToChapter = (id: string, p: number) => {
@@ -255,13 +270,19 @@ function initMotionToggle(director: Director | null, quality: Quality): (() => v
     if (note.dataset.mode === 'invite') note.classList.toggle('is-away', scrollY > innerHeight * 0.5)
     btn.classList.toggle('has-note', !note.classList.contains('is-away') && !note.classList.contains('is-gone'))
   }
-  const setNote = (title: string, text: string, mode: string) => {
-    if (!note) return
+  let noteKeys: [title: StringKey, text: StringKey] | null = null
+  const paintNote = () => {
+    if (!note || !noteKeys) return
     const strong = document.createElement('strong')
-    strong.textContent = title
+    strong.textContent = t(noteKeys[0])
     const span = document.createElement('span')
-    span.textContent = text
+    span.textContent = t(noteKeys[1])
     note.replaceChildren(strong, span)
+  }
+  const setNote = (title: StringKey, text: StringKey, mode: string) => {
+    if (!note) return
+    noteKeys = [title, text]
+    paintNote()
     note.dataset.mode = mode
     note.classList.remove('is-away', 'is-gone')
     syncNote()
@@ -274,7 +295,7 @@ function initMotionToggle(director: Director | null, quality: Quality): (() => v
     document.querySelector('.topbar')?.append(note)
     btn.setAttribute('aria-describedby', 'motion-note')
     btn.classList.add('is-invite')
-    setNote('Animation is off', 'Your device asks for less motion. Press play to turn it on.', 'invite')
+    setNote('motion.off.title', 'motion.off.text', 'invite')
     note.addEventListener('click', () => {
       if (note?.dataset.mode === 'invite') btn.click()
     })
@@ -282,7 +303,7 @@ function initMotionToggle(director: Director | null, quality: Quality): (() => v
   }
 
   const apply = () => {
-    const label = paused ? 'Play animation' : 'Pause animation'
+    const label = t(paused ? 'motion.play' : 'motion.pause')
     if (shown !== paused) {
       btn.innerHTML = paused ? PLAY_ICON : PAUSE_ICON
       shown = paused
@@ -302,7 +323,7 @@ function initMotionToggle(director: Director | null, quality: Quality): (() => v
       } catch {
         /* the opt-in itself is stored */
       }
-      setNote('Turning animation on', 'The page restarts with full motion.', 'live')
+      setNote('motion.restart.title', 'motion.restart.text', 'live')
       scrollTo(0, 0) // restart from the top, so the loader and the hero title assemble in view
       try {
         location.reload()
@@ -316,8 +337,8 @@ function initMotionToggle(director: Director | null, quality: Quality): (() => v
     paused = false
     btn.classList.remove('is-invite', 'is-pulse')
     apply()
-    const why = quality.motionForced ? 'For this visit only.' : saved ? 'Your choice is saved: the full show starts on your next visit.' : 'For this visit only: this browser cannot remember the choice here.'
-    setNote('Animation is on', why, 'live')
+    const why: StringKey = quality.motionForced ? 'motion.on.forced' : saved ? 'motion.on.saved' : 'motion.on.unsaved'
+    setNote('motion.on.title', why, 'live')
     setTimeout(() => {
       note?.classList.add('is-gone')
       syncNote()
@@ -337,6 +358,10 @@ function initMotionToggle(director: Director | null, quality: Quality): (() => v
     apply()
   })
   apply()
+  onLangChange(() => {
+    paintNote()
+    apply()
+  })
   slot.replaceWith(btn)
   return () => {
     if (invite) btn.classList.add('is-pulse')
@@ -350,10 +375,16 @@ function initMotionReturn(quality: Quality): void {
   const btn = document.createElement('button')
   btn.type = 'button'
   btn.className = 'link-btn'
-  btn.textContent = 'Return to reduced motion'
+  let failed = false
+  const paint = () => (btn.textContent = t(failed ? 'motion.returnFail' : 'motion.return'))
+  paint()
+  onLangChange(paint)
   btn.addEventListener('click', () => {
     if (clearMotionOptIn()) location.reload()
-    else btn.textContent = 'Could not change this here'
+    else {
+      failed = true
+      paint()
+    }
   })
   legal.append(' · ', btn)
 }

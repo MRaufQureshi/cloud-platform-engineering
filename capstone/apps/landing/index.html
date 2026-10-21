@@ -12,16 +12,16 @@
     <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
   </head>
   <body>
-    <a class="skip-link" href="#main">Skip to content</a>
+    <a class="skip-link" href="#main" data-i18n="skip">Skip to content</a>
 
-    <div class="loader" id="loader" role="progressbar" aria-label="Loading" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-busy="true">
+    <div class="loader" id="loader" role="progressbar" aria-label="Loading" data-i18n-attr="aria-label:loader.aria" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-busy="true">
       <div class="loader-inner">
         <svg class="loader-ring" viewBox="0 0 120 120" aria-hidden="true">
           <circle class="loader-track" cx="60" cy="60" r="52" />
           <circle class="loader-fill" data-loader-ring cx="60" cy="60" r="52" />
         </svg>
         <div class="loader-count"><span data-loader-count>000</span><span class="loader-unit">%</span></div>
-        <p class="loader-caption"><span class="brand-mark">T.H.E.O.</span> · charging the story</p>
+        <p class="loader-caption" data-i18n="loader.caption"><span class="brand-mark">T.H.E.O.</span> · charging the story</p>
       </div>
     </div>
 
@@ -30,83 +30,84 @@
     <div class="scene-labels" id="scene-labels" aria-hidden="true"></div>
 
     <header class="topbar">
-      <a class="wordmark" href="#hero" aria-label="T.H.E.O., back to top">
+      <a class="wordmark" href="#hero" aria-label="T.H.E.O., back to top" data-i18n-attr="aria-label:wordmark.aria">
         <span class="wordmark-glyph" aria-hidden="true"></span><span class="brand-mark">T.H.E.O.</span>
       </a>
-      <nav class="topnav" aria-label="Sections">
-        <a href="#day">A day</a>
-        <a href="#simulator">Savings</a>
-        <a href="#grid">The grid</a>
-        <a href="#fleet">Fleets</a>
-        <a href="#brain">Orchestrator</a>
+      <nav class="topnav" aria-label="Sections" data-i18n-attr="aria-label:nav.aria">
+        <a href="#day" data-i18n="nav.day">A day</a>
+        <a href="#simulator" data-i18n="nav.savings">Savings</a>
+        <a href="#grid" data-i18n="nav.grid">The grid</a>
+        <a href="#fleet" data-i18n="nav.fleet">Fleets</a>
+        <a href="#brain" data-i18n="nav.brain">Orchestrator</a>
         <!-- Simulator: opens the T.H.E.O. web app. src/appLink.ts sets the href from /config.json. -->
-        <a id="app-link">Simulator</a>
+        <a id="app-link" data-i18n="nav.simulator">Simulator</a>
       </nav>
       <div class="topbar-actions">
         <span id="motion-slot"></span>
         <span id="sound-slot"></span>
-        <button class="menu-toggle" id="menu-toggle" type="button" aria-expanded="false" aria-controls="chapter-menu">Chapters</button>
-        <a class="btn btn-primary btn-sm" href="#join" data-magnetic="8">Join the pilot</a>
+        <button class="sound-toggle lang-toggle" id="lang-toggle" type="button" lang="de" aria-label="Deutsch" data-tip="Deutsch"><span aria-hidden="true">DE</span></button>
+        <button class="menu-toggle" id="menu-toggle" type="button" aria-expanded="false" aria-controls="chapter-menu" data-i18n="nav.chapters">Chapters</button>
+        <a class="btn btn-primary btn-sm" href="#join" data-magnetic="8" data-i18n="cta.join">Join the pilot</a>
       </div>
     </header>
 
-    <nav class="rail" id="rail" aria-label="Chapters"></nav>
-    <nav class="chapter-menu" id="chapter-menu" aria-label="All chapters" hidden></nav>
+    <nav class="rail" id="rail" aria-label="Chapters" data-i18n-attr="aria-label:rail.aria"></nav>
+    <nav class="chapter-menu" id="chapter-menu" aria-label="All chapters" data-i18n-attr="aria-label:menu.aria" hidden></nav>
 
     <main id="main">
       <!-- 00 · Hero -->
-      <section class="chapter hero" id="hero" data-chapter data-label="Intro">
+      <section class="chapter hero" id="hero" data-chapter data-label="Intro" data-i18n-attr="data-label:ch.hero">
         <div class="wrap hero-inner">
-          <p class="eyebrow hero-seq"><span class="brand-mark">T.H.E.O.</span> · <abbr data-tip="Vehicle-to-home: your car powers your house.">V2H</abbr> · <abbr data-tip="Vehicle-to-grid: many cars support the power grid together.">V2G</abbr></p>
-          <h1 class="display display-xl hero-title" id="hero-title" style="opacity: 0">Power, <em>both ways.</em></h1>
-          <p class="lead hero-lead hero-seq">
+          <p class="eyebrow hero-seq" data-i18n="hero.eyebrow"><span class="brand-mark">T.H.E.O.</span> · <abbr data-tip="Vehicle-to-home: your car powers your house.">V2H</abbr> · <abbr data-tip="Vehicle-to-grid: many cars support the power grid together.">V2G</abbr></p>
+          <h1 class="display display-xl hero-title" id="hero-title" style="opacity: 0" data-i18n="hero.title">Power, <em>both ways.</em></h1>
+          <p class="lead hero-lead hero-seq" data-i18n="hero.lead">
             The electric car in your driveway is a battery on wheels. <span class="brand-mark">T.H.E.O.</span> is building the software that lets it power your home,
             your street and the grid.
           </p>
           <div class="hero-actions hero-seq">
-            <a class="btn btn-primary" href="#join" data-magnetic="12">Join the pilot</a>
-            <a class="btn btn-ghost" href="#day" data-magnetic="10"><span>See a day with <span class="brand-mark">T.H.E.O.</span></span></a>
+            <a class="btn btn-primary" href="#join" data-magnetic="12" data-i18n="cta.join">Join the pilot</a>
+            <a class="btn btn-ghost" href="#day" data-magnetic="10"><span data-i18n="hero.seeDay">See a day with <span class="brand-mark">T.H.E.O.</span></span></a>
           </div>
         </div>
         <a class="scroll-cue" href="#parked">
           <span class="scroll-cue-line" aria-hidden="true"></span>
-          <span class="mono">Scroll to switch on</span>
+          <span class="mono" data-i18n="hero.scroll">Scroll to switch on</span>
         </a>
       </section>
 
       <!-- 01 · Idle power -->
-      <section class="chapter parked" id="parked" data-chapter data-label="Idle power">
-        <span class="ghost" aria-hidden="true">Parked</span>
+      <section class="chapter parked" id="parked" data-chapter data-label="Idle power" data-i18n-attr="data-label:ch.parked">
+        <span class="ghost" aria-hidden="true" data-i18n="ghost.parked">Parked</span>
         <div class="wrap split">
           <div class="copy">
-            <p class="eyebrow" data-reveal="fade"><span class="num">01</span> The idle asset</p>
-            <h2 class="display h-xl" data-reveal="lines">The biggest battery you own is parked outside.</h2>
-            <p class="lead" data-reveal="lines">
+            <p class="eyebrow" data-reveal="fade" data-i18n="parked.eyebrow"><span class="num">01</span> The idle asset</p>
+            <h2 class="display h-xl" data-reveal="lines" data-i18n="parked.title">The biggest battery you own is parked outside.</h2>
+            <p class="lead" data-reveal="lines" data-i18n="parked.lead">
               The average car in Germany is driven 42 minutes a day and spends about 21 hours parked at home. An electric one carries a battery that could run the
               house for days.
             </p>
           </div>
         </div>
         <div class="wrap">
-          <ul class="stats" data-stagger aria-label="Key numbers">
+          <ul class="stats" data-stagger aria-label="Key numbers" data-i18n-attr="aria-label:stats.aria">
             <li class="stat">
-              <span class="stat-value"><span data-count-to="42">42</span><small>min</small></span>
-              <span class="stat-label">driven per day, on average<sup><a href="#src-mid">1</a></sup></span>
+              <span class="stat-value"><span data-count-to="42">42</span><small data-i18n="unit.min">min</small></span>
+              <span class="stat-label" data-i18n="stat.drive">driven per day, on average<sup><a href="#src-mid">1</a></sup></span>
             </li>
             <li class="stat">
-              <span class="stat-value">~<span data-count-to="21">21</span><small>h</small></span>
-              <span class="stat-label">parked at home per day, on average<sup><a href="#src-mid">1</a></sup></span>
+              <span class="stat-value">~<span data-count-to="21">21</span><small data-i18n="unit.h">h</small></span>
+              <span class="stat-label" data-i18n="stat.parked">parked at home per day, on average<sup><a href="#src-mid">1</a></sup></span>
             </li>
             <li class="stat">
-              <span class="stat-value">≈<span data-count-to="70">70</span><small>kWh</small></span>
-              <span class="stat-label">average battery in a new EV in Europe<sup><a href="#src-iea">2</a></sup></span>
+              <span class="stat-value">≈<span data-count-to="70">70</span><small data-i18n="unit.kwh">kWh</small></span>
+              <span class="stat-label" data-i18n="stat.battery">average battery in a new EV in Europe<sup><a href="#src-iea">2</a></sup></span>
             </li>
             <li class="stat">
-              <span class="stat-value">≈<span data-count-to="7">7</span><small>days</small></span>
-              <span class="stat-label">of a typical 3-person home's electricity<sup><a href="#src-stromspiegel">3</a></sup></span>
+              <span class="stat-value">≈<span data-count-to="7">7</span><small data-i18n="unit.days">days</small></span>
+              <span class="stat-label" data-i18n="stat.home">of a typical 3-person home's electricity<sup><a href="#src-stromspiegel">3</a></sup></span>
             </li>
           </ul>
-          <p class="footnote footnote-glass" data-reveal="fade">
+          <p class="footnote footnote-glass" data-reveal="fade" data-i18n="parked.foot">
             A 70 kWh battery is nearly seven times the size of the average new home battery (10.3 kWh)<sup><a href="#src-pvmag">4</a></sup>. In practice only part
             of it is ever lent out.
           </p>
@@ -114,39 +115,39 @@
       </section>
 
       <!-- 02 · A day, orchestrated (pinned) -->
-      <section class="chapter day" id="day" data-chapter data-label="A day" data-pin>
+      <section class="chapter day" id="day" data-chapter data-label="A day" data-i18n-attr="data-label:ch.day" data-pin>
         <div class="sticky">
           <div class="wrap day-intro">
-            <p class="eyebrow"><span class="num">02</span> A day, orchestrated</p>
-            <h2 class="display h-lg">Watch one day. <em>Your car does the clever part.</em></h2>
+            <p class="eyebrow" data-i18n="day.eyebrow"><span class="num">02</span> A day, orchestrated</p>
+            <h2 class="display h-lg" data-i18n="day.title">Watch one day. <em>Your car does the clever part.</em></h2>
           </div>
-          <div class="day-hud" id="day-hud" role="region" aria-label="Live readout of the simulated day"></div>
-          <ol class="day-captions" id="day-captions" aria-label="What happens through the day">
-            <li data-at="6"><time>06:00</time><p data-smart><strong>Morning.</strong> Charged and ready, well above the minimum you set.</p><p data-baseline hidden><strong>Morning.</strong> Charged, but it charged whenever it was plugged in.</p></li>
-            <li data-at="8"><time>08:00</time><p data-smart><strong>You drive off.</strong> The sun takes over the house.</p><p data-baseline hidden><strong>You drive off.</strong> The sun takes over the house.</p></li>
-            <li data-at="11"><time>11:00</time><p data-smart><strong>Late morning.</strong> Solar covers the home. The surplus is exported, for just 7.7 <abbr data-tip="Euro cents per kilowatt-hour, the unit electricity is priced in.">ct/kWh</abbr><sup><a href="#src-eeg">12</a></sup>.</p><p data-baseline hidden><strong>Late morning.</strong> Solar covers the home. The surplus is exported, for just 7.7 ct/kWh<sup><a href="#src-eeg">12</a></sup>.</p></li>
-            <li data-at="14"><time>14:00</time><p data-smart><strong>Back home.</strong> The car soaks up the afternoon sun instead of exporting it for 7.7 ct<sup><a href="#src-eeg">12</a></sup>.</p><p data-baseline hidden><strong>Back home.</strong> The car charges at full power straight away, whatever power costs.</p></li>
-            <li data-at="19"><time>19:00</time><p data-smart><strong>Evening peak.</strong> As the sun fades and prices peak, your car takes over the house.</p><p data-baseline hidden><strong>Evening peak.</strong> The house runs on the grid at the day's highest prices.</p></li>
-            <li data-at="23"><time>23:00</time><p data-smart><strong>Night.</strong> In winter it tops up when power is cheapest. In summer, the sun already did.</p><p data-baseline hidden><strong>Night.</strong> The car sits full while the house keeps buying from the grid.</p></li>
-            <li data-at="29.5"><time>05:30</time><p data-smart><strong>Ready again.</strong> Every morning, on your schedule.</p><p data-baseline hidden><strong>Same car, same day.</strong> Switch back to see what changes with planning.</p></li>
+          <div class="day-hud" id="day-hud" role="region" aria-label="Live readout of the simulated day" data-i18n-attr="aria-label:day.hud.aria"></div>
+          <ol class="day-captions" id="day-captions" aria-label="What happens through the day" data-i18n-attr="aria-label:day.captions.aria">
+            <li data-at="6"><time>06:00</time><p data-smart data-i18n="day.c1.smart"><strong>Morning.</strong> Charged and ready, well above the minimum you set.</p><p data-baseline hidden data-i18n="day.c1.base"><strong>Morning.</strong> Charged, but it charged whenever it was plugged in.</p></li>
+            <li data-at="8"><time>08:00</time><p data-smart data-i18n="day.c2.smart"><strong>You drive off.</strong> The sun takes over the house.</p><p data-baseline hidden data-i18n="day.c2.base"><strong>You drive off.</strong> The sun takes over the house.</p></li>
+            <li data-at="11"><time>11:00</time><p data-smart data-i18n="day.c3.smart"><strong>Late morning.</strong> Solar covers the home. The surplus is exported, for just 7.7 <abbr data-tip="Euro cents per kilowatt-hour, the unit electricity is priced in.">ct/kWh</abbr><sup><a href="#src-eeg">12</a></sup>.</p><p data-baseline hidden data-i18n="day.c3.base"><strong>Late morning.</strong> Solar covers the home. The surplus is exported, for just 7.7 ct/kWh<sup><a href="#src-eeg">12</a></sup>.</p></li>
+            <li data-at="14"><time>14:00</time><p data-smart data-i18n="day.c4.smart"><strong>Back home.</strong> The car soaks up the afternoon sun instead of exporting it for 7.7 ct<sup><a href="#src-eeg">12</a></sup>.</p><p data-baseline hidden data-i18n="day.c4.base"><strong>Back home.</strong> The car charges at full power straight away, whatever power costs.</p></li>
+            <li data-at="19"><time>19:00</time><p data-smart data-i18n="day.c5.smart"><strong>Evening peak.</strong> As the sun fades and prices peak, your car takes over the house.</p><p data-baseline hidden data-i18n="day.c5.base"><strong>Evening peak.</strong> The house runs on the grid at the day's highest prices.</p></li>
+            <li data-at="23"><time>23:00</time><p data-smart data-i18n="day.c6.smart"><strong>Night.</strong> In winter it tops up when power is cheapest. In summer, the sun already did.</p><p data-baseline hidden data-i18n="day.c6.base"><strong>Night.</strong> The car sits full while the house keeps buying from the grid.</p></li>
+            <li data-at="29.5"><time>05:30</time><p data-smart data-i18n="day.c7.smart"><strong>Ready again.</strong> Every morning, on your schedule.</p><p data-baseline hidden data-i18n="day.c7.base"><strong>Same car, same day.</strong> Switch back to see what changes with planning.</p></li>
           </ol>
-          <p class="footnote day-note">Illustrative simulation: 75 kWh car, 8 <abbr data-tip="Kilowatt-peak: the rated output of a solar system in full sun.">kWp</abbr> rooftop solar, a summer day, a sample <abbr data-tip="A tariff whose price follows the wholesale market through the day, in 15-minute or hourly steps. Since 2025 every German supplier has had to offer one; you need a smart meter.">dynamic tariff</abbr>.</p>
+          <p class="footnote day-note" data-i18n="day.note">Illustrative simulation: 75 kWh car, 8 <abbr data-tip="Kilowatt-peak: the rated output of a solar system in full sun.">kWp</abbr> rooftop solar, a summer day, a sample <abbr data-tip="A tariff whose price follows the wholesale market through the day, in 15-minute or hourly steps. Since 2025 every German supplier has had to offer one; you need a smart meter.">dynamic tariff</abbr>.</p>
         </div>
       </section>
 
       <!-- 03 · Your rules -->
-      <section class="chapter ready" id="ready" data-chapter data-label="Your rules">
-        <span class="ghost" aria-hidden="true">Ready</span>
+      <section class="chapter ready" id="ready" data-chapter data-label="Your rules" data-i18n-attr="data-label:ch.ready">
+        <span class="ghost" aria-hidden="true" data-i18n="ghost.ready">Ready</span>
         <div class="wrap split">
           <div class="copy">
-            <p class="eyebrow" data-reveal="fade"><span class="num">03</span> Your rules</p>
-            <h2 class="display h-xl" data-reveal="lines">Always ready when you are.</h2>
-            <p class="lead" data-reveal="lines">
+            <p class="eyebrow" data-reveal="fade" data-i18n="ready.eyebrow"><span class="num">03</span> Your rules</p>
+            <h2 class="display h-xl" data-reveal="lines" data-i18n="ready.title">Always ready when you are.</h2>
+            <p class="lead" data-reveal="lines" data-i18n="ready.lead">
               You set the departure time, the minimum charge and how much the car may lend. <span class="brand-mark">T.H.E.O.</span> is designed to re-plan
               every quarter of an hour around them, so the car is charged when you need it and works for you when you don't.
             </p>
           </div>
-          <figure class="dial" id="dial" aria-label="Example settings: leave at 07:30, never below 40 percent">
+          <figure class="dial" id="dial" aria-label="Example settings: leave at 07:30, never below 40 percent" data-i18n-attr="aria-label:dial.aria">
             <svg viewBox="0 0 240 240" aria-hidden="true">
               <circle class="dial-track" cx="120" cy="120" r="96" />
               <circle class="dial-reserve" cx="120" cy="120" r="96" stroke-dasharray="0 999" />
@@ -154,71 +155,71 @@
               <g class="dial-ticks"></g>
             </svg>
             <figcaption>
-              <span class="dial-big" data-count-to="80" data-suffix="%">80%</span>
-              <span class="mono">ready by 07:30</span>
-              <span class="mono dim">never below 40%</span>
+              <span class="dial-big" data-count-to="80" data-suffix="%" data-i18n-attr="data-suffix:suffix.pct">80%</span>
+              <span class="mono" data-i18n="dial.ready">ready by 07:30</span>
+              <span class="mono dim" data-i18n="dial.never">never below 40%</span>
             </figcaption>
           </figure>
         </div>
         <div class="wrap">
-          <ul class="rules" data-stagger aria-label="Design rules">
+          <ul class="rules" data-stagger aria-label="Design rules" data-i18n-attr="aria-label:rules.aria">
             <li class="rule">
-              <h3><span class="rule-key rule-key-charge" aria-hidden="true"></span>Driver first</h3>
-              <p>Your departure time and minimum charge come first. Leaving early? You'll be able to override the plan in one tap.</p>
+              <h3 data-i18n="rule.driver.h"><span class="rule-key rule-key-charge" aria-hidden="true"></span>Driver first</h3>
+              <p data-i18n="rule.driver.p">Your departure time and minimum charge come first. Leaving early? You'll be able to override the plan in one tap.</p>
             </li>
             <li class="rule">
-              <h3><span class="rule-key rule-key-reserve" aria-hidden="true"></span>Battery-aware</h3>
-              <p>Smart charging can reduce wear; lending power adds a little. The plan stays within your carmaker's limits.<sup><a href="#src-agora">5</a></sup></p>
+              <h3 data-i18n="rule.battery.h"><span class="rule-key rule-key-reserve" aria-hidden="true"></span>Battery-aware</h3>
+              <p data-i18n="rule.battery.p">Smart charging can reduce wear; lending power adds a little. The plan stays within your carmaker's limits.<sup><a href="#src-agora">5</a></sup></p>
             </li>
             <li class="rule">
-              <h3><span class="rule-key rule-key-grid" aria-hidden="true"></span>Grid-friendly</h3>
-              <p>Charge when power is cheap and plentiful. Give back when the grid needs it most.</p>
+              <h3 data-i18n="rule.grid.h"><span class="rule-key rule-key-grid" aria-hidden="true"></span>Grid-friendly</h3>
+              <p data-i18n="rule.grid.p">Charge when power is cheap and plentiful. Give back when the grid needs it most.</p>
             </li>
           </ul>
         </div>
       </section>
 
       <!-- 04 · Simulator -->
-      <section class="chapter simulator" id="simulator" data-chapter data-label="Savings">
-        <span class="ghost" aria-hidden="true">Your day</span>
+      <section class="chapter simulator" id="simulator" data-chapter data-label="Savings" data-i18n-attr="data-label:ch.simulator">
+        <span class="ghost" aria-hidden="true" data-i18n="ghost.simulator">Your day</span>
         <div class="wrap">
-          <p class="eyebrow" data-reveal="fade"><span class="num">04</span> Your numbers</p>
-          <h2 class="display h-xl" data-reveal="lines">What could it save you?</h2>
+          <p class="eyebrow" data-reveal="fade" data-i18n="sim.eyebrow"><span class="num">04</span> Your numbers</p>
+          <h2 class="display h-xl" data-reveal="lines" data-i18n="sim.title">What could it save you?</h2>
           <div class="sim-root" id="sim-root"></div>
         </div>
       </section>
 
       <!-- 05 · Vehicle-to-grid (pinned) -->
-      <section class="chapter grid" id="grid" data-chapter data-label="The grid" data-pin>
+      <section class="chapter grid" id="grid" data-chapter data-label="The grid" data-i18n-attr="data-label:ch.grid" data-pin>
         <div class="sticky">
           <div class="wrap grid-steps" id="grid-steps">
             <article class="step" data-from="0" data-to="0.3">
-              <p class="eyebrow"><span class="num">05</span> Vehicle-to-grid</p>
-              <h2 class="display h-xl">Now multiply it.</h2>
-              <p class="lead">
+              <p class="eyebrow" data-i18n="grid.eyebrow"><span class="num">05</span> Vehicle-to-grid</p>
+              <h2 class="display h-xl" data-i18n="grid.title">Now multiply it.</h2>
+              <p class="lead" data-i18n="grid.lead">
                 More than 2 million battery-electric cars are registered in Germany<sup><a href="#src-kba">6</a></sup>, and most are parked when the grid is under the most
                 pressure. One study estimates that widespread bidirectional charging could save Europe's power system about €22 billion a year by 2040 (scenario)<sup><a href="#src-fraunhofer">11</a></sup>.
               </p>
             </article>
             <article class="step" data-from="0.3" data-to="0.6">
-              <p class="eyebrow mono-peak">18:30 · Evening peak</p>
-              <h2 class="display h-lg">Everyone cooks, heats and charges at once.</h2>
-              <p class="lead">Demand peaks, prices spike and the grid strains as the sun goes down.</p>
+              <p class="eyebrow mono-peak" data-i18n="grid.s2.eyebrow">18:30 · Evening peak</p>
+              <h2 class="display h-lg" data-i18n="grid.s2.title">Everyone cooks, heats and charges at once.</h2>
+              <p class="lead" data-i18n="grid.s2.lead">Demand peaks, prices spike and the grid strains as the sun goes down.</p>
             </article>
             <article class="step" data-from="0.6" data-to="1.01">
-              <p class="eyebrow mono-energy">One virtual power plant</p>
-              <h2 class="display h-lg">Together, thousands of parked cars could lend a little. That is what <span class="brand-mark">T.H.E.O.</span> is building.</h2>
+              <p class="eyebrow mono-energy" data-i18n="grid.s3.eyebrow">One virtual power plant</p>
+              <h2 class="display h-lg" data-i18n="grid.s3.title">Together, thousands of parked cars could lend a little. That is what <span class="brand-mark">T.H.E.O.</span> is building.</h2>
               <div class="vpp" id="vpp">
-                <label class="vpp-label" for="vpp-share">Share of Germany's EVs taking part: <output id="vpp-share-out" for="vpp-share">30%</output></label>
+                <label class="vpp-label" for="vpp-share"><span data-i18n="vpp.label">Share of Germany's EVs taking part:</span> <output id="vpp-share-out" for="vpp-share">30%</output></label>
                 <input id="vpp-share" type="range" min="5" max="60" step="5" value="30" aria-valuetext="30 percent" />
-                <p class="vpp-result"><span class="vpp-gw" id="vpp-gw">4.5</span><span class="vpp-unit">GW</span> <span class="dim">of flexible power at a 7.4 kW wallbox each</span></p>
-                <p class="footnote">Illustrative upper bound: 2.03 M cars × share × 7.4 kW, as if every participating car could discharge and all were plugged in at once. A vendor
+                <p class="vpp-result"><span class="vpp-gw" id="vpp-gw">4.5</span><span class="vpp-unit">GW</span> <span class="dim" data-i18n="vpp.unit">of flexible power at a 7.4 kW wallbox each</span></p>
+                <p class="footnote" data-i18n="vpp.note">Illustrative upper bound: 2.03 M cars × share × 7.4 kW, as if every participating car could discharge and all were plugged in at once. A vendor
                 estimate puts today's fleet at about 1.0–1.5 GW (The Mobility House, 2025)<sup><a href="#src-tmh">8</a></sup>.</p>
               </div>
             </article>
           </div>
           <figure class="demand" id="demand" aria-labelledby="demand-cap">
-            <svg viewBox="0 0 360 170" preserveAspectRatio="none" role="img" aria-label="Schematic: evening electricity demand on a street, with and without coordinated charging. Without coordination demand peaks around 19:00; with it the peak is flattened.">
+            <svg viewBox="0 0 360 170" preserveAspectRatio="none" role="img" aria-label="Schematic: evening electricity demand on a street, with and without coordinated charging. Without coordination demand peaks around 19:00; with it the peak is flattened." data-i18n-attr="aria-label:demand.aria">
               <defs>
                 <linearGradient id="demand-fill" x1="0" x2="0" y1="0" y2="1">
                   <stop offset="0" stop-color="#5eead4" stop-opacity="0.35" />
@@ -231,106 +232,106 @@
               <line class="demand-cap-line" x1="0" x2="360" y1="52" y2="52" />
             </svg>
             <div class="demand-axis"><span>14:00</span><span>19:00</span><span>24:00</span></div>
-            <figcaption id="demand-cap"><span class="mono" data-demand-state>Uncoordinated</span> · evening demand on one street <span class="dim">(schematic, not measured data)</span></figcaption>
+            <figcaption id="demand-cap"><span class="mono" data-demand-state>Uncoordinated</span> · <span data-i18n="demand.street">evening demand on one street</span> <span class="dim" data-i18n="demand.note">(schematic, not measured data)</span></figcaption>
           </figure>
-          <ul class="policy" aria-label="Recent changes in Germany">
-            <li><span class="mono">2025</span><span>Every supplier must offer a dynamic tariff (smart meter required)<sup><a href="#src-enwg">7</a></sup></span></li>
-            <li><span class="mono">2025</span><span>The “double grid fee” on stored power fed back is removed<sup><a href="#src-tmh">8</a></sup></span></li>
-            <li><span class="mono">2026</span><span>The regulator treats bidirectional chargers much like home batteries, phasing in through 2027<sup><a href="#src-bnetza">9</a></sup></span></li>
+          <ul class="policy" aria-label="Recent changes in Germany" data-i18n-attr="aria-label:policy.aria">
+            <li><span class="mono">2025</span><span data-i18n="policy.1">Every supplier must offer a dynamic tariff (smart meter required)<sup><a href="#src-enwg">7</a></sup></span></li>
+            <li><span class="mono">2025</span><span data-i18n="policy.2">The “double grid fee” on stored power fed back is removed<sup><a href="#src-tmh">8</a></sup></span></li>
+            <li><span class="mono">2026</span><span data-i18n="policy.3">The regulator treats bidirectional chargers much like home batteries, phasing in through 2027<sup><a href="#src-bnetza">9</a></sup></span></li>
           </ul>
         </div>
       </section>
 
       <!-- 06 · Fleets (pinned) -->
-      <section class="chapter fleet" id="fleet" data-chapter data-label="Fleets" data-pin>
+      <section class="chapter fleet" id="fleet" data-chapter data-label="Fleets" data-i18n-attr="data-label:ch.fleet" data-pin>
         <div class="sticky">
           <div class="wrap fleet-grid">
             <div class="copy">
-              <p class="eyebrow"><span class="num">06</span> Fleets</p>
-              <h2 class="display h-xl">A depot full of batteries.</h2>
-              <p class="lead">
+              <p class="eyebrow" data-i18n="fleet.eyebrow"><span class="num">06</span> Fleets</p>
+              <h2 class="display h-xl" data-i18n="fleet.title">A depot full of batteries.</h2>
+              <p class="lead" data-i18n="fleet.lead">
                 Vans and company cars sit plugged in for hours between shifts. <span class="brand-mark">T.H.E.O.</span> is designed to lend their power only when the grid
                 is under stress, only from vehicles with at least 20 points to spare, never below their minimum, and never from one that leaves within three hours.
               </p>
-              <p class="fleet-rules mono">Lends only with 20+&nbsp;points to spare · never below the minimum · never within 3&nbsp;h of departure</p>
+              <p class="fleet-rules mono" data-i18n="fleet.rules">Lends only with 20+&nbsp;points to spare · never below the minimum · never within 3&nbsp;h of departure</p>
             </div>
             <div class="fleet-board-mount" id="fleet-board"></div>
-            <p class="footnote fleet-note">Illustrative simulation: six depot vehicles from 18:00 to 10:00 with 22 kW chargers and a sample tariff. Energy only, no prices.</p>
+            <p class="footnote fleet-note" data-i18n="fleet.note">Illustrative simulation: six depot vehicles from 18:00 to 10:00 with 22 kW chargers and a sample tariff. Energy only, no prices.</p>
           </div>
         </div>
       </section>
 
       <!-- 07 · Vehicle-to-factory (pinned) -->
-      <section class="chapter factory" id="factory" data-chapter data-label="Industry" data-pin>
+      <section class="chapter factory" id="factory" data-chapter data-label="Industry" data-i18n-attr="data-label:ch.factory" data-pin>
         <div class="sticky">
           <div class="wrap factory-grid">
             <div class="copy">
-              <p class="eyebrow"><span class="num">07</span> <abbr data-tip="Vehicle-to-factory: company and employee cars help balance a factory's energy use.">V2F</abbr> · Vehicle-to-factory</p>
-              <h2 class="display h-xl">Factories can do it too.</h2>
-              <p class="lead">
+              <p class="eyebrow" data-i18n="factory.eyebrow"><span class="num">07</span> <abbr data-tip="Vehicle-to-factory: company and employee cars help balance a factory's energy use.">V2F</abbr> · Vehicle-to-factory</p>
+              <h2 class="display h-xl" data-i18n="factory.title">Factories can do it too.</h2>
+              <p class="lead" data-i18n="factory.lead">
                 Third-party research simulated a German manufacturer with its own solar plant, five flexible production loads and 20 EVs in its car park: 10 company
                 cars that charge both ways and 10 private cars that only charge.<sup><a href="#src-paper">10</a></sup>
               </p>
             </div>
             <figure class="research" aria-labelledby="research-cap">
-              <div class="bars" role="img" aria-label="Expected energy cost over five working days: sequential planning 1,095 euros, combined planning 980 euros. Emissions: 2.95 tonnes versus 2.74 tonnes.">
+              <div class="bars" role="img" aria-label="Expected energy cost over five working days: sequential planning 1,095 euros, combined planning 980 euros. Emissions: 2.95 tonnes versus 2.74 tonnes." data-i18n-attr="aria-label:bars.aria">
                 <div class="bar-row">
-                  <span class="bar-name">Plan factory, then cars</span>
+                  <span class="bar-name" data-i18n="bar.seq.name">Plan factory, then cars</span>
                   <span class="bar"><span class="bar-fill seq" style="--w: 1"></span></span>
-                  <span class="bar-val mono">€1,095</span>
+                  <span class="bar-val mono" data-i18n="bar.seq.val">€1,095</span>
                 </div>
                 <div class="bar-row">
-                  <span class="bar-name">Plan both together</span>
+                  <span class="bar-name" data-i18n="bar.comb.name">Plan both together</span>
                   <span class="bar"><span class="bar-fill comb" style="--w: 0.895"></span></span>
-                  <span class="bar-val mono">€980</span>
+                  <span class="bar-val mono" data-i18n="bar.comb.val">€980</span>
                 </div>
               </div>
               <div class="research-kpis">
-                <p><span class="kpi" data-count-to="10" data-prefix="≈" data-suffix="%">≈10%</span><span>lower expected energy cost</span></p>
-                <p><span class="kpi" data-count-to="7" data-prefix="≈" data-suffix="%">≈7%</span><span>lower emissions</span></p>
+                <p><span class="kpi" data-count-to="10" data-prefix="≈" data-suffix="%" data-i18n-attr="data-suffix:suffix.pct">≈10%</span><span data-i18n="kpi.cost">lower expected energy cost</span></p>
+                <p><span class="kpi" data-count-to="7" data-prefix="≈" data-suffix="%" data-i18n-attr="data-suffix:suffix.pct">≈7%</span><span data-i18n="kpi.emissions">lower emissions</span></p>
               </div>
-              <figcaption id="research-cap" class="footnote">
+              <figcaption id="research-cap" class="footnote" data-i18n="factory.cap">
                 Simulated case study, 5 working days in October 2022, 10 runs. Expected cost €980 vs €1,095 and emissions 2.74 t vs 2.95 t. The authors report 11.69% and
                 7.65%, measured against the combined result. Bayer, Bollenbach, Lersch, Rusche &amp; Weibelzahl, AMCIS 2023.
               </figcaption>
             </figure>
           </div>
           <blockquote class="quote wrap">
-            <p>“The full potential of V2F requires a combination with energy-flexible production processes.”</p>
-            <cite>Roth et al. (2019), as cited by Bayer et al. (2023)</cite>
+            <p data-i18n="factory.quote">“The full potential of V2F requires a combination with energy-flexible production processes.”</p>
+            <cite data-i18n="factory.cite">Roth et al. (2019), as cited by Bayer et al. (2023)</cite>
           </blockquote>
         </div>
       </section>
 
       <!-- 08 · How it works -->
-      <section class="chapter brain" id="brain" data-chapter data-label="Orchestrator">
-        <span class="ghost" aria-hidden="true">Orchestrate</span>
+      <section class="chapter brain" id="brain" data-chapter data-label="Orchestrator" data-i18n-attr="data-label:ch.brain">
+        <span class="ghost" aria-hidden="true" data-i18n="ghost.brain">Orchestrate</span>
         <div class="wrap">
-          <p class="eyebrow" data-reveal="fade"><span class="num">08</span> The orchestrator</p>
-          <h2 class="display h-xl" data-reveal="lines">One plan, re-made every 15 minutes.</h2>
-          <p class="lead narrow" data-reveal="lines">
+          <p class="eyebrow" data-reveal="fade" data-i18n="brain.eyebrow"><span class="num">08</span> The orchestrator</p>
+          <h2 class="display h-xl" data-reveal="lines" data-i18n="brain.title">One plan, re-made every 15 minutes.</h2>
+          <p class="lead narrow" data-reveal="lines" data-i18n="brain.lead">
             <span class="brand-mark">T.H.E.O.</span> is being built to look a day or two ahead and pick, quarter by quarter, the cheapest and cleanest way to keep your car
             ready. When something changes — you leave early, clouds roll in — it simply re-plans. The savings simulator above runs a simplified version of this
             planner in your browser.
           </p>
           <div class="flowchart" id="flowchart">
-            <ul class="fc-col fc-in" aria-label="Inputs">
-              <li>Prices &amp; forecasts</li>
-              <li>Sun &amp; weather</li>
-              <li>Your schedule</li>
-              <li>Battery health</li>
-              <li>Grid signals</li>
+            <ul class="fc-col fc-in" aria-label="Inputs" data-i18n-attr="aria-label:fc.in.aria">
+              <li data-i18n="fc.prices">Prices &amp; forecasts</li>
+              <li data-i18n="fc.sun">Sun &amp; weather</li>
+              <li data-i18n="fc.schedule">Your schedule</li>
+              <li data-i18n="fc.battery">Battery health</li>
+              <li data-i18n="fc.signals">Grid signals</li>
             </ul>
             <div class="fc-core">
               <span class="fc-core-ring" aria-hidden="true"></span>
-              <span class="mono">Optimiser</span>
-              <span class="fc-core-sub">every 15 min</span>
+              <span class="mono" data-i18n="fc.optimiser">Optimiser</span>
+              <span class="fc-core-sub" data-i18n="fc.every">every 15 min</span>
             </div>
-            <ul class="fc-col fc-out" aria-label="Actions">
-              <li><span class="dot dot-grid"></span>Charge</li>
-              <li><span class="dot"></span>Hold</li>
-              <li><span class="dot dot-energy"></span>Power the home</li>
-              <li><span class="dot dot-energy"></span>Support the grid</li>
+            <ul class="fc-col fc-out" aria-label="Actions" data-i18n-attr="aria-label:fc.out.aria">
+              <li data-i18n="fc.charge"><span class="dot dot-grid"></span>Charge</li>
+              <li data-i18n="fc.hold"><span class="dot"></span>Hold</li>
+              <li data-i18n="fc.home"><span class="dot dot-energy"></span>Power the home</li>
+              <li data-i18n="fc.grid"><span class="dot dot-energy"></span>Support the grid</li>
             </ul>
             <svg class="fc-lines" aria-hidden="true"></svg>
           </div>
@@ -338,64 +339,64 @@
       </section>
 
       <!-- 09 · FAQ -->
-      <section class="chapter faq" id="faq" data-chapter data-label="FAQ">
-        <span class="ghost" aria-hidden="true">Honest</span>
+      <section class="chapter faq" id="faq" data-chapter data-label="FAQ" data-i18n-attr="data-label:ch.faq">
+        <span class="ghost" aria-hidden="true" data-i18n="ghost.faq">Honest</span>
         <div class="wrap faq-grid">
           <div class="copy">
-            <p class="eyebrow" data-reveal="fade"><span class="num">09</span> Honest answers</p>
-            <h2 class="display h-lg" data-reveal="lines">Good questions.</h2>
+            <p class="eyebrow" data-reveal="fade" data-i18n="faq.eyebrow"><span class="num">09</span> Honest answers</p>
+            <h2 class="display h-lg" data-reveal="lines" data-i18n="faq.title">Good questions.</h2>
           </div>
           <div class="faq-list">
             <details>
-              <summary>Will it wear out my battery?</summary>
-              <p>It adds some cycling. Studies find the effect modest, and smart charging on its own can reduce wear. The plan is designed to stay within your carmaker's limits.<sup><a href="#src-agora">5</a></sup></p>
+              <summary data-i18n="faq.q1">Will it wear out my battery?</summary>
+              <p data-i18n="faq.a1">It adds some cycling. Studies find the effect modest, and smart charging on its own can reduce wear. The plan is designed to stay within your carmaker's limits.<sup><a href="#src-agora">5</a></sup></p>
             </details>
             <details>
-              <summary>Will my car be charged when I need it?</summary>
-              <p>That is the design rule: your departure time and minimum charge come first, and you'll be able to override the plan at any time. If a target can't be reached in time, for example after a late plug-in, the app will tell you.</p>
+              <summary data-i18n="faq.q2">Will my car be charged when I need it?</summary>
+              <p data-i18n="faq.a2">That is the design rule: your departure time and minimum charge come first, and you'll be able to override the plan at any time. If a target can't be reached in time, for example after a late plug-in, the app will tell you.</p>
             </details>
             <details>
-              <summary>Which cars and chargers work?</summary>
-              <p>Bidirectional charging depends on the car, its software and the wallbox. Support is growing quickly. We'll check your setup before a pilot starts.</p>
+              <summary data-i18n="faq.q3">Which cars and chargers work?</summary>
+              <p data-i18n="faq.a3">Bidirectional charging depends on the car, its software and the wallbox. Support is growing quickly. We'll check your setup before a pilot starts.</p>
             </details>
             <details>
-              <summary>What do I need at home?</summary>
-              <p>A car and wallbox that can charge both ways, and a smart meter (needed for dynamic tariffs). Rooftop solar helps, but it is not required.</p>
+              <summary data-i18n="faq.q4">What do I need at home?</summary>
+              <p data-i18n="faq.a4">A car and wallbox that can charge both ways, and a smart meter (needed for dynamic tariffs). Rooftop solar helps, but it is not required.</p>
             </details>
             <details>
-              <summary>Is this allowed in Germany?</summary>
-              <p>Yes. Since 2025 every supplier must offer a dynamic tariff<sup><a href="#src-enwg">7</a></sup>, the “double grid fee” on stored power has been removed<sup><a href="#src-tmh">8</a></sup>, and the regulator's 2026 rules treat bidirectional chargers much like home batteries<sup><a href="#src-bnetza">9</a></sup>. Some details are still being phased in.</p>
+              <summary data-i18n="faq.q5">Is this allowed in Germany?</summary>
+              <p data-i18n="faq.a5">Yes. Since 2025 every supplier must offer a dynamic tariff<sup><a href="#src-enwg">7</a></sup>, the “double grid fee” on stored power has been removed<sup><a href="#src-tmh">8</a></sup>, and the regulator's 2026 rules treat bidirectional chargers much like home batteries<sup><a href="#src-bnetza">9</a></sup>. Some details are still being phased in.</p>
             </details>
             <details>
-              <summary>How much will I really save?</summary>
-              <p>It depends on your tariff, car, solar and habits. In our illustrative model, smart charging delivers most of the saving for commuters, and vehicle-to-home matters more when the car is home during the day. Independent analysis finds that vehicle-to-home alone rarely pays for the extra hardware, and that the biggest gains come when the car can also support the grid.<sup><a href="#src-agora">5</a></sup></p>
+              <summary data-i18n="faq.q6">How much will I really save?</summary>
+              <p data-i18n="faq.a6">It depends on your tariff, car, solar and habits. In our illustrative model, smart charging delivers most of the saving for commuters, and vehicle-to-home matters more when the car is home during the day. Independent analysis finds that vehicle-to-home alone rarely pays for the extra hardware, and that the biggest gains come when the car can also support the grid.<sup><a href="#src-agora">5</a></sup></p>
             </details>
           </div>
         </div>
       </section>
 
       <!-- 10 · Join -->
-      <section class="chapter join" id="join" data-chapter data-label="Join">
+      <section class="chapter join" id="join" data-chapter data-label="Join" data-i18n-attr="data-label:ch.join">
         <div class="wrap join-inner">
-          <h2 class="display display-xl hero-title" data-reveal="chars">Your car can do more than <em>drive.</em></h2>
-          <p class="lead" data-reveal="lines">We are preparing a small pilot in Germany for homes with an electric car.</p>
-          <p class="join-notice mono">Prototype: this form doesn't send anything yet. Pilot sign-up opens soon.</p>
+          <h2 class="display display-xl hero-title" data-reveal="chars" data-i18n="join.title">Your car can do more than <em>drive.</em></h2>
+          <p class="lead" data-reveal="lines" data-i18n="join.lead">We are preparing a small pilot in Germany for homes with an electric car.</p>
+          <p class="join-notice mono" data-i18n="join.notice">Prototype: this form doesn't send anything yet. Pilot sign-up opens soon.</p>
           <form class="join-form" id="join-form" novalidate>
             <div class="field field-email">
-              <label for="join-email">Email</label>
-              <input id="join-email" name="email" type="email" autocomplete="email" placeholder="you@example.com" required />
+              <label for="join-email" data-i18n="join.email">Email</label>
+              <input id="join-email" name="email" type="email" autocomplete="email" placeholder="you@example.com" data-i18n-attr="placeholder:join.placeholder" required />
             </div>
             <div class="field">
-              <label for="join-has">I have</label>
+              <label for="join-has" data-i18n="join.has">I have</label>
               <select id="join-has" name="has">
-              <option value="ev-solar">EV + solar</option>
-              <option value="ev">EV only</option>
-              <option value="solar">Solar only</option>
-              <option value="none">Neither yet</option>
-              <option value="fleet">A fleet</option>
+              <option value="ev-solar" data-i18n="join.opt.evsolar">EV + solar</option>
+              <option value="ev" data-i18n="join.opt.ev">EV only</option>
+              <option value="solar" data-i18n="join.opt.solar">Solar only</option>
+              <option value="none" data-i18n="join.opt.none">Neither yet</option>
+              <option value="fleet" data-i18n="join.opt.fleet">A fleet</option>
               </select>
             </div>
-            <button class="btn btn-primary" type="submit" data-magnetic="10">Join the pilot</button>
+            <button class="btn btn-primary" type="submit" data-magnetic="10" data-i18n="cta.join">Join the pilot</button>
             <p class="form-status" id="join-status" role="status" aria-live="polite"></p>
           </form>
         </div>
@@ -407,35 +408,35 @@
         <div>
           <p class="footer-mark brand-mark">T.H.E.O.</p>
           <p class="footer-name brand-full">The Holistic Energy Orchestrator</p>
-          <p class="dim">Vehicle-to-home and vehicle-to-grid, orchestrated.</p>
-          <p class="footnote">
+          <p class="dim" data-i18n="footer.tag">Vehicle-to-home and vehicle-to-grid, orchestrated.</p>
+          <p class="footnote" data-i18n="footer.note">
             Savings, days and capacities on this page are illustrative simulations, not offers or guarantees. Research results are reported from third-party work
             and cited. Bidirectional charging needs a compatible car, wallbox and a smart meter.
           </p>
         </div>
         <div>
-          <h2 class="footer-h">Sources</h2>
+          <h2 class="footer-h" data-i18n="footer.sources">Sources</h2>
           <ol class="sources">
-            <li id="src-mid">Mobilität in Deutschland 2023 (MiD), Ergebnisbericht, p. 89–91.</li>
-            <li id="src-iea">IEA, Global EV Outlook 2026 — EV batteries.</li>
-            <li id="src-stromspiegel">Stromspiegel für Deutschland — household electricity use.</li>
-            <li id="src-pvmag">pv magazine, 8 Jan 2026 — battery storage additions in Germany 2025.</li>
+            <li id="src-mid" data-i18n="src.mid">Mobilität in Deutschland 2023 (MiD), Ergebnisbericht, p. 89–91.</li>
+            <li id="src-iea" data-i18n="src.iea">IEA, Global EV Outlook 2026 — EV batteries.</li>
+            <li id="src-stromspiegel" data-i18n="src.stromspiegel">Stromspiegel für Deutschland — household electricity use.</li>
+            <li id="src-pvmag" data-i18n="src.pvmag">pv magazine, 8 Jan 2026 — battery storage additions in Germany 2025.</li>
             <li id="src-agora">Agora Verkehrswende / RLI (2025), Bidirektionales Laden.</li>
-            <li id="src-kba">Kraftfahrt-Bundesamt, press release 08/2026 — BEV stock on 1 Jan 2026.</li>
-            <li id="src-enwg">§41a EnWG — dynamic electricity tariffs.</li>
-            <li id="src-tmh">The Mobility House newsroom, Nov 2025 — Bundestag removes double grid fees (§118(6) EnWG).</li>
-            <li id="src-bnetza">Bundesnetzagentur, 1 Oct 2026 — MiSpeL rules for storage and bidirectional charge points.</li>
+            <li id="src-kba" data-i18n="src.kba">Kraftfahrt-Bundesamt, press release 08/2026 — BEV stock on 1 Jan 2026.</li>
+            <li id="src-enwg" data-i18n="src.enwg">§41a EnWG — dynamic electricity tariffs.</li>
+            <li id="src-tmh" data-i18n="src.tmh">The Mobility House newsroom, Nov 2025 — Bundestag removes double grid fees (§118(6) EnWG).</li>
+            <li id="src-bnetza" data-i18n="src.bnetza">Bundesnetzagentur, 1 Oct 2026 — MiSpeL rules for storage and bidirectional charge points.</li>
             <li id="src-paper">
               Bayer, D. S., Bollenbach, J., Lersch, J., Rusche, S., &amp; Weibelzahl, M. (2023). Smart Mobility Meets Industry: Enhancing Energy Flexibility Potentials by
               Combining Industrial Production &amp; Electric Vehicle Charging. AMCIS 2023 Proceedings, 13.
               <a href="https://aisel.aisnet.org/amcis2023/sig_green/sig_green/13/" rel="noopener">aisel.aisnet.org</a>
             </li>
-            <li id="src-fraunhofer">Fraunhofer ISE/ISI for T&amp;E (2024) — EU potential of V2G (scenario).</li>
-            <li id="src-eeg">Bundesnetzagentur — EEG feed-in tariffs for PV commissioned from 1 Aug 2026 (7.70 ct/kWh, up to 10 kWp, partial feed-in).</li>
+            <li id="src-fraunhofer" data-i18n="src.fraunhofer">Fraunhofer ISE/ISI for T&amp;E (2024) — EU potential of V2G (scenario).</li>
+            <li id="src-eeg" data-i18n="src.eeg">Bundesnetzagentur — EEG feed-in tariffs for PV commissioned from 1 Aug 2026 (7.70 ct/kWh, up to 10 kWp, partial feed-in).</li>
           </ol>
         </div>
       </div>
-      <p class="wrap legal dim">© 2026 <span class="brand-mark">T.H.E.O.</span> · Prototype website</p>
+      <p class="wrap legal dim"><span data-i18n="legal">© 2026 <span class="brand-mark">T.H.E.O.</span> · Prototype website</span></p>
     </footer>
 
     <noscript><style>.loader{display:none}#hero-title,.hero-seq{opacity:1!important}</style></noscript>
