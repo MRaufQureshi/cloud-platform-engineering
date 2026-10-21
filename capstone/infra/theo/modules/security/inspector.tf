@@ -12,7 +12,7 @@ resource "aws_inspector2_enabler" "main" {
 
   # AWS needs longer than the default 5 minutes to switch Inspector off
   timeouts {
-    delete = "10m"
+    delete = "12m"
   }
 }
 

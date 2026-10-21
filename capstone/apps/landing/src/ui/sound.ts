@@ -8,6 +8,8 @@
 // −21 dBFS (about −33 LUFS), single cues near −18 dBFS, and even every cue at once stays
 // under −16.5 dBFS. createSoundEngine is exported so the levels can be re-checked that way.
 
+import { onLangChange, t } from '../i18n/lang.ts'
+
 export type SoundCue = 'reversal' | 'tick' | 'reveal' | 'surge'
 
 export interface Sound {
@@ -326,6 +328,7 @@ interface Controller extends Sound {
 
 let instance: Controller | null = null
 const toggles = new Set<HTMLButtonElement>()
+onLangChange(() => toggles.forEach(paint)) // the name and tooltip are words
 
 /** The page's sound. Safe to call more than once: later calls return the same instance. */
 export function initSound(): Sound {
@@ -484,8 +487,8 @@ function paint(btn: HTMLButtonElement): void {
   btn.dataset.state = mode
   btn.setAttribute('aria-pressed', String(on))
   // The name stays constant; aria-pressed carries the state (ARIA APG toggle button).
-  btn.setAttribute('aria-label', 'Ambient sound')
-  btn.dataset.tip = on ? 'Sound on' : mode === 'armed' ? 'Click to resume sound' : 'Sound off'
+  btn.setAttribute('aria-label', t('sound.label'))
+  btn.dataset.tip = t(on ? 'sound.on' : mode === 'armed' ? 'sound.armed' : 'sound.off')
 }
 
 function readPref(): string | null {
