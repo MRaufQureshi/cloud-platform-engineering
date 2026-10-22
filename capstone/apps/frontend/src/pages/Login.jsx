@@ -5,7 +5,10 @@
 import React, { useEffect, useRef, useState } from "react";
 import { confirmSignIn, signIn } from "aws-amplify/auth";
 import { HouseAvatar } from "../components/House.jsx";
+import LangSwitch from "../components/LangSwitch.jsx";
 import { ArrowRight, Eye, EyeOff, Info } from "../components/Icons.jsx";
+import { emph } from "../lib.js";
+import { useLang } from "../LangContext.jsx";
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
@@ -24,12 +27,25 @@ function messageFor(error) {
   }
 }
 
+// "Welcome *home*" -> Welcome <em>home</em>
+function Emphasis({ text }) {
+  const [before, word, after] = emph(text);
+  return (
+    <>
+      {before}
+      <em>{word}</em>
+      {after}
+    </>
+  );
+}
+
 // Where the caret is in the email field (0 = start).
 function caretOf(input) {
   return input.selectionStart == null ? input.value.length : input.selectionStart;
 }
 
 export default function Login({ onSignedIn }) {
+  const { t } = useLang();
   const [step, setStep] = useState("signIn"); // signIn | newPassword
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -117,8 +133,8 @@ export default function Login({ onSignedIn }) {
   async function submit(event) {
     event.preventDefault();
     if (busy) return;
-    if (step === "signIn" && !valid) return fail("Enter your email address, like name@example.com.");
-    if (step === "newPassword" && password.length < 10) return fail("Use at least 10 characters.");
+    if (step === "signIn" && !valid) return fail(t("login.err.email"));
+    if (step === "newPassword" && password.length < 10) return fail(t("login.err.length"));
     setPhase("loading");
     setError("");
     try {
@@ -142,6 +158,7 @@ export default function Login({ onSignedIn }) {
 
   return (
     <div className="login">
+      <LangSwitch className="login-lang" />
       <div className="brand">
         <span className="wordmark">T<span>.</span>H<span>.</span>E<span>.</span>O<span>.</span></span>
         <span className="label">The Holistic Energy Orchestrator</span>
@@ -152,23 +169,21 @@ export default function Login({ onSignedIn }) {
 
         {phase === "success" ? (
           <div className="done heading" role="status">
-            <h1>You're <em>in</em></h1>
-            <p className="lead">The lights are on. Opening your dashboard…</p>
+            <h1><Emphasis text={t("login.in.title")} /></h1>
+            <p className="lead">{t("login.in.lead")}</p>
           </div>
         ) : (
           <form onSubmit={submit} noValidate>
             <div className="heading">
-              {newPassword ? <h1>Choose a new <em>password</em></h1> : <h1>Welcome <em>home</em></h1>}
+              <h1><Emphasis text={t(newPassword ? "login.newPassword.title" : "login.welcome")} /></h1>
               <p className="lead">
-                {newPassword
-                  ? "First sign-in: replace the temporary password. At least 10 characters, with upper and lower case letters, a number and a symbol."
-                  : "Sign in to see how your car powers your home."}
+                {t(newPassword ? "login.newPassword.lead" : "login.lead")}
               </p>
             </div>
 
             {!newPassword && (
               <div className="field">
-                <label className="label" htmlFor="email">Email</label>
+                <label className="label" htmlFor="email">{t("login.email")}</label>
                 <input
                   id="email"
                   className="input"
@@ -202,7 +217,7 @@ export default function Login({ onSignedIn }) {
             )}
 
             <div className="field">
-              <label className="label" htmlFor="password">{newPassword ? "New password" : "Password"}</label>
+              <label className="label" htmlFor="password">{t(newPassword ? "login.newPassword.label" : "login.password")}</label>
               <div className="password">
                 <input
                   id="password"
@@ -220,7 +235,7 @@ export default function Login({ onSignedIn }) {
                 />
                 <button
                   type="button"
-                  aria-label={show ? "Hide password" : "Show password"}
+                  aria-label={show ? t("login.password.hide") : t("login.password.show")}
                   aria-pressed={show}
                   onMouseDown={(e) => e.preventDefault()} // keep the focus (and the blinds) on the password field
                   onClick={() => setShow(!show)}
@@ -243,11 +258,11 @@ export default function Login({ onSignedIn }) {
               {busy ? (
                 <>
                   <span className="spinner" aria-hidden="true" />
-                  {newPassword ? "Saving…" : "Signing in…"}
+                  {newPassword ? t("login.saving") : t("login.signingIn")}
                 </>
               ) : (
                 <>
-                  {newPassword ? "Save and sign in" : "Sign in"}
+                  {newPassword ? t("login.save") : t("login.signIn")}
                   <ArrowRight />
                 </>
               )}
@@ -256,7 +271,7 @@ export default function Login({ onSignedIn }) {
         )}
       </main>
 
-      <p className="footnote">No sign-up · the admin creates demo accounts</p>
+      <p className="footnote">{t("login.footnote")}</p>
     </div>
   );
 }
