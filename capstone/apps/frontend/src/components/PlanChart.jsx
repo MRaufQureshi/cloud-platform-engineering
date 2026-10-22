@@ -5,6 +5,7 @@
 // Lines are SVG stretched to the card width; labels and markers are HTML on top, placed in %.
 import React from "react";
 import { clock, isPeak } from "../lib.js";
+import { useLang } from "../LangContext.jsx";
 
 const W = 1000;
 const H = 240;
@@ -21,8 +22,9 @@ function hourTicks(upcoming) {
 }
 
 export default function PlanChart({ view, upcoming, windows, stats, levels, settings, simNow }) {
+  const { t, num } = useLang();
   const n = upcoming.length;
-  if (n === 0) return <div className="empty">No plan right now. THEO makes one as soon as the car is plugged in.</div>;
+  if (n === 0) return <div className="empty">{t("chart.empty")}</div>;
 
   const x = (i) => (i / n) * W;
   const left = (i) => pct(i, n);
@@ -36,7 +38,7 @@ export default function PlanChart({ view, upcoming, windows, stats, levels, sett
   if (view === "power") {
     const maxKw = Math.round(Math.max(11, ...upcoming.map((s) => Math.abs(s.kw))));
     yLabels = [{ t: `+${maxKw} kW`, top: "6%" }, { t: "0", top: "50%" }, { t: `−${maxKw} kW`, top: "94%" }];
-    label = "Planned power per 15 minutes. Up is charging, down is the car powering the home.";
+    label = t("chart.label.power");
     body = (
       <div className="bars">
         {upcoming.map((s) => (
@@ -51,7 +53,7 @@ export default function PlanChart({ view, upcoming, windows, stats, levels, sett
     const line = levels.map((v, k) => `${k ? "L" : "M"}${x(k).toFixed(1)} ${yOf(v).toFixed(1)}`).join(" ");
     const area = levels.map((v, k) => `${left(k)} ${pct(yOf(v), H)}`);
     yLabels = [{ t: "100%", top: pct(yOf(1), H) }, { t: "50%", top: pct(yOf(0.5), H) }, { t: "0", top: pct(yOf(0), H) }];
-    label = `Battery from ${Math.round(levels[0] * 100)}% now to ${Math.round(levels[n] * 100)}% at ${departure}.`;
+    label = t("chart.label.battery", { from: Math.round(levels[0] * 100), to: Math.round(levels[n] * 100), time: departure });
     body = (
       <>
         <div className="hatch soc" style={{ clipPath: `polygon(${area.join(", ")}, 100% 100%, 0% 100%)` }} />
@@ -61,9 +63,9 @@ export default function PlanChart({ view, upcoming, windows, stats, levels, sett
         {settings && (
           <>
             <div className="level-line" style={{ top: pct(yOf(settings.reserve_soc / 100), H) }} />
-            <span className="level-label" style={{ top: pct(yOf(settings.reserve_soc / 100), H) }}>RESERVE {settings.reserve_soc}%</span>
+            <span className="level-label" style={{ top: pct(yOf(settings.reserve_soc / 100), H) }}>{t("ctl.reserveLabel", { n: settings.reserve_soc })}</span>
             <div className="level-line target" style={{ top: pct(yOf(settings.target_soc / 100), H) }} />
-            <span className="level-label target" style={{ top: pct(yOf(settings.target_soc / 100), H) }}>TARGET {settings.target_soc}%</span>
+            <span className="level-label target" style={{ top: pct(yOf(settings.target_soc / 100), H) }}>{t("ctl.targetLabel", { n: settings.target_soc })}</span>
           </>
         )}
       </>
@@ -86,7 +88,7 @@ export default function PlanChart({ view, upcoming, windows, stats, levels, sett
       }
     });
     yLabels = [{ t: `${yMax} ct`, top: pct(yP(yMax), H) }, { t: `${yMax / 2} ct`, top: pct(yP(yMax / 2), H) }, { t: "0", top: pct(yP(0), H) }];
-    label = `Price per 15 minutes from ${upcoming[0].time} until ${departure}, with ${windows.length} planned windows.`;
+    label = t("chart.label.price", { from: upcoming[0].time, to: departure, n: windows.length });
 
     // One window gets the highlight and the label card: the first car -> home window, else the first charge.
     const featured = windows.find((w) => w.action === "discharge") || windows[0];
@@ -102,11 +104,11 @@ export default function PlanChart({ view, upcoming, windows, stats, levels, sett
           <div className="knot" style={{ left: left(featured.start), top: pct(yP(first.price), H) }} />
           <div className="knot" style={{ left: left(featured.end), top: pct(yP(last.price), H) }} />
           <div className="tip" style={{ left: tipLeft }}>
-            <div className="tip-row"><span>{featured.from}</span><b>{first.price.toFixed(1)} ct</b></div>
+            <div className="tip-row"><span>{featured.from}</span><b>{num(first.price, 1)} ct</b></div>
             <div className={`tip-pill ${featured.action}`}>
-              {featured.action === "charge" ? "Charging" : "Car → home"} · {featured.kwh.toFixed(1)} kWh
+              {t(featured.action === "charge" ? "chart.tip.charge" : "chart.tip.home", { kwh: num(featured.kwh, 1) })}
             </div>
-            <div className="tip-row"><span>{featured.to}</span><b>{last.price.toFixed(1)} ct</b></div>
+            <div className="tip-row"><span>{featured.to}</span><b>{num(last.price, 1)} ct</b></div>
           </div>
         </>
       );
@@ -126,7 +128,7 @@ export default function PlanChart({ view, upcoming, windows, stats, levels, sett
           .filter((w) => (w.end - w.start) / n >= 0.04)
           .map((w) => (
             <span key={`label-${w.start}`} className={`band-label ${w.action}`} style={{ left: pct(w.start + (w.end - w.start) / 2, n) }}>
-              {w.action === "charge" ? "CHARGE" : "CAR → HOME"}
+              {t(w.action === "charge" ? "chart.band.charge" : "chart.band.home")}
             </span>
           ))}
         {highlight}
@@ -151,9 +153,9 @@ export default function PlanChart({ view, upcoming, windows, stats, levels, sett
           ))}
           {body}
           <div className="marker" style={{ left: 0 }} />
-          <span className="mark-label" style={{ left: 8 }}>NOW {clock(simNow)}</span>
+          <span className="mark-label" style={{ left: 8 }}>{t("chart.now", { time: clock(simNow) })}</span>
           <div className="marker end" style={{ right: 0 }} />
-          {departure && <span className="mark-label" style={{ right: 8 }}>LEAVES {departure}</span>}
+          {departure && <span className="mark-label" style={{ right: 8 }}>{t("chart.leaves", { time: departure })}</span>}
         </div>
       </div>
       <div className="chart-x" aria-hidden="true">
@@ -167,20 +169,21 @@ export default function PlanChart({ view, upcoming, windows, stats, levels, sett
 }
 
 function Legend({ view }) {
+  const { t } = useLang();
   let items = [
-    ["swatch", "#818CF8", "Charge from grid"],
-    ["swatch", "#2DD4BF", "Car → home"],
-    ["line-swatch", "#F8FAFC", "Price, ct/kWh"],
-    ["line-swatch", "#FB7185", "Expensive hours"],
+    ["swatch", "#818CF8", "chart.legend.grid"],
+    ["swatch", "#2DD4BF", "chart.legend.home"],
+    ["line-swatch", "#F8FAFC", "chart.legend.price"],
+    ["line-swatch", "#FB7185", "chart.legend.peak"],
   ];
-  if (view === "power") items = [["swatch", "#818CF8", "Charging"], ["swatch", "#2DD4BF", "Car → home"]];
-  if (view === "battery") items = [["line-swatch", "#2DD4BF", "Battery if the plan runs"], ["line-swatch", "#64748B", "Reserve and target"]];
+  if (view === "power") items = [["swatch", "#818CF8", "chart.legend.charging"], ["swatch", "#2DD4BF", "chart.legend.home"]];
+  if (view === "battery") items = [["line-swatch", "#2DD4BF", "chart.legend.battery"], ["line-swatch", "#64748B", "chart.legend.levels"]];
   return (
     <div className="legend label">
-      {items.map(([kind, color, text]) => (
-        <span key={text}>
+      {items.map(([kind, color, key]) => (
+        <span key={key}>
           <i className={kind} style={{ background: color }} />
-          {text}
+          {t(key)}
         </span>
       ))}
     </div>

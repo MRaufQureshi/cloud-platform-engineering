@@ -2,6 +2,7 @@
 // powers the home below it), teal from the reserve to the current level, ticks for the
 // empty part, and a white mark at the target.
 import React from "react";
+import { useLang } from "../LangContext.jsx";
 
 const CX = 150;
 const CY = 160;
@@ -20,6 +21,7 @@ function arc(from, to) {
 }
 
 export default function BatteryGauge({ soc, reserve, target }) {
+  const { t } = useLang();
   const level = soc / 100;
   const floor = reserve / 100;
   const [kx, ky] = point(level);
@@ -27,7 +29,7 @@ export default function BatteryGauge({ soc, reserve, target }) {
   const [ix, iy] = point(target / 100, 95);
   const [ox, oy] = point(target / 100, 125);
   return (
-    <svg className="gauge" viewBox="0 0 300 180" role="img" aria-label={`Battery ${soc}%. Reserve ${reserve}%, target ${target}%.`}>
+    <svg className="gauge" viewBox="0 0 300 180" role="img" aria-label={t("gauge.aria", { soc, reserve, target })}>
       <path d={arc(0, 1)} fill="none" stroke="#111A2B" strokeWidth="26" strokeLinecap="round" />
       <path d={arc(0, 1)} fill="none" stroke="#94A3B8" strokeOpacity=".3" strokeWidth="26" strokeDasharray="1.5 6" />
       <path d={arc(0, Math.min(level, floor))} fill="none" stroke="#334155" strokeWidth="26" strokeLinecap="round" />
