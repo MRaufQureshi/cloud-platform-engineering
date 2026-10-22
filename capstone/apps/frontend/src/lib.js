@@ -1,4 +1,10 @@
 // lib.js - the app's small pure functions. No React, no network, so they can be tested.
+// The functions that write sentences take t() (and num()) as the last arguments, so the
+// same code serves both languages. Without them they default to English.
+import { makeFormat, makeT } from "./i18n.js";
+
+const tEn = makeT("en");
+const { num: numEn, eur: eurEn } = makeFormat("en");
 
 const SLOT_MS = 15 * 60 * 1000;
 // Same numbers as apps/optimizer/solve.py, used to draw the battery projection.
@@ -16,7 +22,7 @@ function hhmm(ms) {
 }
 
 export function euro(value) {
-  return `€${Number(value || 0).toFixed(2)}`;
+  return eurEn(value);
 }
 
 // What the car is doing right now, from the status the API returns.
@@ -107,44 +113,47 @@ export function socProjection(soc, upcoming) {
 }
 
 // "4 s ago", "3 min ago"
-export function ago(seconds) {
-  if (seconds == null) return "no data yet";
-  return seconds < 90 ? `${seconds} s ago` : `${Math.round(seconds / 60)} min ago`;
+export function ago(seconds, t = tEn) {
+  if (seconds == null) return t("ago.none");
+  return seconds < 90 ? t("ago.s", { n: seconds }) : t("ago.min", { n: Math.round(seconds / 60) });
+}
+
+// "Charging now, while power is *cheap*." -> ["Charging now, while power is ", "cheap", "."]
+export function emph(text) {
+  const [before, word = "", after = ""] = text.split("*");
+  return [before, word, after];
+}
+
+// "Next *charging 14:00–15:00*." -> [{ text: "Next " }, { text: "charging 14:00–15:00", strong: true }, { text: "." }]
+export function parts(text) {
+  return text
+    .split("*")
+    .map((piece, i) => ({ text: piece, strong: i % 2 === 1 }))
+    .filter((p) => p.text !== "")
+    .map((p) => (p.strong ? p : { text: p.text }));
 }
 
 // The headline on the dashboard: [plain text, highlighted word, end]
-export function greeting(state) {
-  switch (state.kind) {
-    case "charging":
-      return ["Charging now, while power is ", "cheap", "."];
-    case "home":
-      return ["Your car is ", "powering your home", "."];
-    case "idle":
-      return ["Plugged in and waiting for a ", "cheaper", " hour."];
-    case "unplugged":
-      return ["Plug the car in to get a ", "plan", "."];
-    default:
-      return ["The device is ", "offline", " right now."];
-  }
+export function greeting(state, t = tEn) {
+  const keys = { charging: "g.charging", home: "g.home", idle: "g.idle", unplugged: "g.unplugged" };
+  return emph(t(keys[state.kind] || "g.offline"));
 }
 
 // The plan in words, as [{ text, strong }] parts for the "THEO's plan" card.
-export function planSummary(state, upcoming, windows, settings) {
-  if (state.kind === "offline") return [{ text: "No telemetry from the device. THEO plans again when it is back." }];
-  if (state.kind === "unplugged" || upcoming.length === 0) return [{ text: "No plan yet. " }, { text: "Plug the car in", strong: true }, { text: " and THEO makes one in a few seconds." }];
+export function planSummary(state, upcoming, windows, settings, t = tEn, num = numEn) {
+  if (state.kind === "offline") return [{ text: t("plan.offline") }];
+  if (state.kind === "unplugged" || upcoming.length === 0) return parts(t("plan.none"));
 
-  const parts = [];
-  const price = `${upcoming[0].price.toFixed(1)} ct`;
-  if (state.kind === "charging") parts.push({ text: "Charging now", strong: true }, { text: " while power costs " }, { text: price, strong: true }, { text: ". " });
-  else if (state.kind === "home") parts.push({ text: "Powering your home now", strong: true }, { text: " while power costs " }, { text: price, strong: true }, { text: ". " });
-  else parts.push({ text: "Waiting", strong: true }, { text: " while power costs " }, { text: price, strong: true }, { text: ". " });
+  const price = `${num(upcoming[0].price, 1)} ct`;
+  const key = { charging: "plan.charging", home: "plan.home" }[state.kind] || "plan.wait";
+  const result = parts(t(key, { price }));
 
   const next = windows.filter((w) => w.start > 0).slice(0, 2);
   next.forEach((w, i) => {
-    parts.push({ text: i === 0 ? "Next, " : "then " });
-    parts.push({ text: w.action === "charge" ? `charging ${w.from}–${w.to}` : `car → home ${w.from}–${w.to}`, strong: true });
-    parts.push({ text: i === next.length - 1 ? ". " : ", " });
+    result.push({ text: i === 0 ? t("plan.next") : t("plan.then") });
+    result.push(...parts(t(w.action === "charge" ? "plan.win.charge" : "plan.win.discharge", { from: w.from, to: w.to })));
+    result.push({ text: i === next.length - 1 ? ". " : ", " });
   });
-  if (settings) parts.push({ text: "Target: " }, { text: `${settings.target_soc}% by ${settings.departure_time}`, strong: true }, { text: "." });
-  return parts;
+  if (settings) result.push(...parts(t("plan.target", { n: settings.target_soc, time: settings.departure_time })));
+  return result;
 }
