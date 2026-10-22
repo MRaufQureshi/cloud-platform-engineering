@@ -5,6 +5,8 @@ import { getCurrentUser, signOut } from "aws-amplify/auth";
 import { createApi } from "./api.js";
 import { clock } from "./lib.js";
 import { usePolling } from "./usePolling.js";
+import { useLang } from "./LangContext.jsx";
+import LangSwitch from "./components/LangSwitch.jsx";
 import { Chevron, Info, LogOut } from "./components/Icons.jsx";
 import Control from "./pages/Control.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
@@ -35,6 +37,7 @@ function Frame({ config, onSignOut }) {
   const [deviceId, setDeviceId] = useState(config.devices[0]);
   const [statuses, setStatuses] = useState({});
   const [error, setError] = useState("");
+  const { t } = useLang();
 
   useEffect(() => {
     const onHash = () => setPage(pageFromUrl());
@@ -63,28 +66,28 @@ function Frame({ config, onSignOut }) {
     <div className="shell">
       <header className="topbar">
         <div className="topbar-group">
-          <a className="wordmark" href="#dashboard" aria-label="T.H.E.O. dashboard">
+          <a className="wordmark" href="#dashboard" aria-label={t("brand.dashboardAria")}>
             T<span>.</span>H<span>.</span>E<span>.</span>O<span>.</span>
           </a>
-          <nav className="nav" aria-label="Main">
-            <a href="#dashboard" aria-current={page === "dashboard" ? "page" : undefined}>Dashboard</a>
-            <a href="#control" aria-current={page === "control" ? "page" : undefined}>Control</a>
+          <nav className="nav" aria-label={t("nav.aria")}>
+            <a href="#dashboard" aria-current={page === "dashboard" ? "page" : undefined}>{t("nav.dashboard")}</a>
+            <a href="#control" aria-current={page === "control" ? "page" : undefined}>{t("nav.control")}</a>
           </nav>
         </div>
         <div className="topbar-group tight">
-          <span className="status-pill" title={online ? "Online" : "Offline"}>
+          <span className="status-pill" title={online ? t("status.online") : t("status.offline")}>
             <span className={online ? "dot" : "dot off"} />
             {status ? (
               <>
-                <span className="pill-state">{online ? "Online" : "Offline"}{status.updated_at ? " ·" : ""}</span>
-                {status.updated_at && <span>sim {clock(status.updated_at)}</span>}
+                <span className="pill-state">{online ? t("status.online") : t("status.offline")}{status.updated_at ? " ·" : ""}</span>
+                {status.updated_at && <span>{t("status.sim", { time: clock(status.updated_at) })}</span>}
               </>
             ) : (
-              "Connecting…"
+              t("status.connecting")
             )}
           </span>
           <div className="select">
-            <label className="sr-only" htmlFor="device">Device</label>
+            <label className="sr-only" htmlFor="device">{t("device.label")}</label>
             <select id="device" value={deviceId} onChange={(e) => setDeviceId(e.target.value)}>
               {config.devices.map((id) => (
                 <option key={id} value={id}>{id}</option>
@@ -92,7 +95,8 @@ function Frame({ config, onSignOut }) {
             </select>
             <Chevron size={16} />
           </div>
-          <button className="round" type="button" aria-label="Sign out" onClick={onSignOut}>
+          <LangSwitch />
+          <button className="round" type="button" aria-label={t("signout")} onClick={onSignOut}>
             <LogOut />
           </button>
         </div>

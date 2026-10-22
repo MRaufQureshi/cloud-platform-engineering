@@ -8,6 +8,7 @@ import { Amplify } from "aws-amplify";
 import "@fontsource-variable/manrope";
 import "@fontsource-variable/jetbrains-mono";
 import App from "./App.jsx";
+import { LangProvider } from "./LangContext.jsx";
 import "./styles.css";
 
 const root = createRoot(document.getElementById("root"));
@@ -22,7 +23,11 @@ async function start() {
       Auth: { Cognito: { userPoolId: config.userPoolId, userPoolClientId: config.userPoolClientId } },
     });
 
-    root.render(<App config={config} />);
+    root.render(
+      <LangProvider>
+        <App config={config} />
+      </LangProvider>
+    );
   } catch (error) {
     root.render(<p className="fatal">Could not start the app: {error.message}</p>);
   }
