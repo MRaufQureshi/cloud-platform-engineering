@@ -2,20 +2,22 @@
 // sends a command: the simulated car reports back (telemetry) and the optimizer makes a
 // new plan. Nothing here talks to the optimizer: the cloud does that.
 import React, { useEffect, useRef, useState } from "react";
-import { ago, carState } from "../lib.js";
+import { ago, carState, emph } from "../lib.js";
+import { useLang } from "../LangContext.jsx";
 import { Scene } from "../components/House.jsx";
 import { Check, Info } from "../components/Icons.jsx";
 
 function steps(deviceId) {
   return [
-    ["The API saves your settings", `PUT /device/${deviceId}/settings → DynamoDB`],
-    ["A re-plan message is queued", "SQS re-plan queue"],
-    ["The optimizer solves a new plan", "ECS Fargate · HiGHS"],
-    ["The dashboard shows it", `GET /device/${deviceId}/schedule`],
+    ["ctl.step1", `PUT /device/${deviceId}/settings → DynamoDB`],
+    ["ctl.step2", "SQS re-plan queue"],
+    ["ctl.step3", "ECS Fargate · HiGHS"],
+    ["ctl.step4", `GET /device/${deviceId}/schedule`],
   ];
 }
 
 export default function Control({ api, deviceId, status, refresh }) {
+  const { t, num } = useLang();
   const [saved, setSaved] = useState(null); // the settings as stored
   const [form, setForm] = useState(null); // the settings being edited
   const [pending, setPending] = useState(null); // { plugged, since } while a plug command travels
@@ -50,7 +52,7 @@ export default function Control({ api, deviceId, status, refresh }) {
     }
     if (Date.now() - pending.since > 30000) {
       setPending(null);
-      setError("No answer from the car yet. Is the device online?");
+      setError(t("ctl.err.noAnswer"));
       return undefined;
     }
     const timer = setTimeout(refresh, 2000);
@@ -119,21 +121,23 @@ export default function Control({ api, deviceId, status, refresh }) {
   let title = "…";
   let note = "";
   if (status) {
-    title = state.kind === "offline" ? "Offline" : plugged ? "Plugged in" : "Unplugged";
-    if (sending) note = "Command sent · waiting for the car";
-    else if (state.kind === "offline") note = `No telemetry · last ${ago(status.seconds_since_update)}`;
-    else if (state.kind === "home") note = `${soc}% · powering your home · ${state.kw.toFixed(1)} kW`;
-    else if (state.kind === "charging") note = `${soc}% · charging · ${state.kw.toFixed(1)} kW`;
-    else if (plugged) note = `${soc}% · idle, waiting for a cheaper hour`;
-    else note = "THEO plans again when you plug in";
+    title = state.kind === "offline" ? t("ctl.state.offline") : plugged ? t("ctl.state.plugged") : t("ctl.state.unplugged");
+    if (sending) note = t("ctl.note.sending");
+    else if (state.kind === "offline") note = t("ctl.note.offline", { ago: ago(status.seconds_since_update, t) });
+    else if (state.kind === "home") note = t("ctl.note.home", { soc, kw: num(state.kw, 1) });
+    else if (state.kind === "charging") note = t("ctl.note.charging", { soc, kw: num(state.kw, 1) });
+    else if (plugged) note = t("ctl.note.idle", { soc });
+    else note = t("ctl.note.unplugged");
   }
+
+  const titleParts = emph(t("ctl.title"));
 
   return (
     <main className="page">
       <div className="greeting">
         <div>
-          <span className="eyebrow">Control · {deviceId}</span>
-          <h1>Tell THEO what your car <em>needs</em>.</h1>
+          <span className="eyebrow">{t("ctl.eyebrow", { id: deviceId })}</span>
+          <h1>{titleParts[0]}<em>{titleParts[1]}</em>{titleParts[2]}</h1>
         </div>
       </div>
 
@@ -146,32 +150,32 @@ export default function Control({ api, deviceId, status, refresh }) {
 
       <div className="row">
         <section className="card side connection" aria-labelledby="connection-title">
-          <h2 className="card-title" id="connection-title">Connection</h2>
-          <Scene plugged={plugged} flow={flow} kwLabel={`${state.kw.toFixed(1)} kW`} lights={flow === "home"} mood={mood} look={look} />
+          <h2 className="card-title" id="connection-title">{t("ctl.connection")}</h2>
+          <Scene plugged={plugged} flow={flow} kwLabel={`${num(state.kw, 1)} kW`} lights={flow === "home"} mood={mood} look={look} />
           <div className="plug-state" aria-live="polite">
             <span className="plug-title">{title}</span>
             <span className="label">{note}</span>
           </div>
           <button className={plugged ? "btn" : "btn primary"} type="button" onClick={plug} disabled={!status || sending}>
             {sending && <span className="spinner" aria-hidden="true" />}
-            {sending ? "Waiting for the car…" : plugged ? "Unplug car" : "Plug in car"}
+            {sending ? t("ctl.btn.waiting") : plugged ? t("ctl.btn.unplug") : t("ctl.btn.plug")}
           </button>
           <p className="cmd">
-            Sends <b>{plugged ? "plug_out" : "plug_in"}</b> to <span className="nowrap">theo/{deviceId}/control</span> over IoT Core
+            {t("ctl.cmd.before")} <b>{plugged ? "plug_out" : "plug_in"}</b> {t("ctl.cmd.mid")} <span className="nowrap">theo/{deviceId}/control</span> {t("ctl.cmd.after")}
           </p>
         </section>
 
         <section className="card grow rules" aria-labelledby="rules-title">
           <div className="saved-block">
-            <h2 className="card-title strong" id="rules-title">Charging rules</h2>
-            <p className="help">THEO plans around these. Saving asks the optimizer for a new plan.</p>
+            <h2 className="card-title strong" id="rules-title">{t("ctl.rules")}</h2>
+            <p className="help">{t("ctl.rules.help")}</p>
           </div>
 
           {form ? (
             <form onSubmit={save} noValidate>
               <div className="meter" aria-hidden="true">
                 <div className="meter-labels">
-                  {soc != null && <span style={{ left: `clamp(40px, ${soc}%, calc(100% - 40px))`, transform: "translateX(-50%)", color: "#5EEAD4" }}>NOW {soc}%</span>}
+                  {soc != null && <span style={{ left: `clamp(40px, ${soc}%, calc(100% - 40px))`, transform: "translateX(-50%)", color: "#5EEAD4" }}>{t("ctl.now", { n: soc })}</span>}
                 </div>
                 <div className="meter-track">
                   <div className="meter-soc" style={{ width: `${soc ?? 0}%` }} />
@@ -179,68 +183,69 @@ export default function Control({ api, deviceId, status, refresh }) {
                   <div className="meter-target" style={{ left: `${form.target_soc}%` }} />
                 </div>
                 <div className="meter-labels">
-                  <span style={{ left: `max(${form.reserve_soc}%, 110px)`, transform: "translateX(calc(-100% - 6px))", color: "#A1A1AA" }}>RESERVE {form.reserve_soc}%</span>
-                  <span style={{ left: `min(${form.target_soc}%, calc(100% - 100px))`, transform: "translateX(6px)" }}>TARGET {form.target_soc}%</span>
+                  <span style={{ left: `max(${form.reserve_soc}%, 110px)`, transform: "translateX(calc(-100% - 6px))", color: "#A1A1AA" }}>{t("ctl.reserveLabel", { n: form.reserve_soc })}</span>
+                  <span style={{ left: `min(${form.target_soc}%, calc(100% - 100px))`, transform: "translateX(6px)" }}>{t("ctl.targetLabel", { n: form.target_soc })}</span>
                 </div>
               </div>
 
               <div className="sliders">
                 <div className="slider">
                   <div className="slider-head">
-                    <label className="label" htmlFor="reserve">Reserve</label>
-                    <output htmlFor="reserve">{form.reserve_soc}%</output>
+                    <label className="label" htmlFor="reserve">{t("ctl.reserve")}</label>
+                    <output htmlFor="reserve">{t("dash.pct", { n: form.reserve_soc })}</output>
                   </div>
                   <input id="reserve" type="range" min="0" max="100" step="5" value={form.reserve_soc} onChange={(e) => change("reserve_soc", Number(e.target.value))} aria-describedby="reserve-help" />
-                  <p className="help" id="reserve-help">THEO never powers your home below this.</p>
+                  <p className="help" id="reserve-help">{t("ctl.reserve.help")}</p>
                 </div>
                 <div className="slider">
                   <div className="slider-head">
-                    <label className="label" htmlFor="target">Target</label>
-                    <output htmlFor="target">{form.target_soc}%</output>
+                    <label className="label" htmlFor="target">{t("ctl.target")}</label>
+                    <output htmlFor="target">{t("dash.pct", { n: form.target_soc })}</output>
                   </div>
                   <input id="target" type="range" min="0" max="100" step="5" value={form.target_soc} onChange={(e) => change("target_soc", Number(e.target.value))} aria-describedby="target-help" />
-                  <p className="help" id="target-help">Charged to this by the time you leave.</p>
+                  <p className="help" id="target-help">{t("ctl.target.help")}</p>
                 </div>
                 <div className="slider narrow">
-                  <label className="label" htmlFor="departure">Departure</label>
+                  <label className="label" htmlFor="departure">{t("ctl.departure")}</label>
                   <input id="departure" className="time-input" type="time" required value={form.departure_time} onChange={(e) => change("departure_time", e.target.value)} aria-describedby="departure-help" />
-                  <p className="help" id="departure-help">When you usually leave.</p>
+                  <p className="help" id="departure-help">{t("ctl.departure.help")}</p>
                 </div>
               </div>
 
               {invalid && (
                 <p className="note" role="alert">
                   <Info size={18} />
-                  The target can't be lower than the reserve.
+                  {t("ctl.invalid")}
                 </p>
               )}
 
               <div className="actions">
                 <button className="btn primary" type="submit" disabled={invalid || saving}>
                   {saving && <span className="spinner" aria-hidden="true" />}
-                  {saving ? "Saving…" : "Save and re-plan"}
+                  {saving ? t("ctl.saving") : t("ctl.save")}
                 </button>
                 <button className="btn" type="button" onClick={() => setForm(saved)} disabled={saving}>
-                  Reset
+                  {t("ctl.reset")}
                 </button>
                 {progress === 5 && (
                   <span className="saved" role="status">
                     <Check size={18} />
-                    Saved. The new plan is on the dashboard.
+                    {t("ctl.saved")}
                   </span>
                 )}
               </div>
             </form>
           ) : (
-            <p className="help">Loading the settings…</p>
+            <p className="help">{t("ctl.loading")}</p>
           )}
         </section>
       </div>
 
       <section className="card raised stack" aria-labelledby="flow-title">
-        <h2 className="card-title strong" id="flow-title">What happens when you save</h2>
+        <h2 className="card-title strong" id="flow-title">{t("ctl.flow")}</h2>
         <ol className="steps">
-          {steps(deviceId).map(([name, detail], i) => {
+          {steps(deviceId).map(([nameKey, detail], i) => {
+            const name = t(nameKey);
             const n = i + 1;
             const done = progress > n;
             const active = progress === n;
@@ -257,7 +262,7 @@ export default function Control({ api, deviceId, status, refresh }) {
         </ol>
       </section>
 
-      <p className="label page-foot">Times are simulated · the device answers with telemetry every 10 s</p>
+      <p className="label page-foot">{t("ctl.foot")}</p>
     </main>
   );
 }
