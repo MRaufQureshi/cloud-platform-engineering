@@ -26,6 +26,11 @@ browser ──HTTPS──► CloudFront ──signed request (OAC)──► priv
 | `src/pages/Dashboard.jsx` | savings, the plan chart (price, power, battery), the battery gauge, the plan in words, every car, the prices ahead |
 | `src/components/` | `House.jsx` (the mascot and the Control scene), `PlanChart.jsx`, `BatteryGauge.jsx`, `Icons.jsx` |
 | `src/lib.js` (+ `lib.test.js`) | the pure logic, unit-tested |
+| `src/i18n.js`, `src/LangContext.jsx` (+ `i18n.test.js`) | the English and German texts, the `t()` helper, number and money formats, and the saved language choice |
+| `src/components/LangSwitch.jsx` | the EN / DE switch (login page and top bar) |
+
+**Languages.** English (the default) and German, in the formal "Sie". The choice is saved in the browser. Every visible text is a key in
+`src/i18n.js`; add a language by adding a dictionary there. Error messages that come from Cognito and the API stay in English.
 
 **`config.json`.** Terraform writes it into the bucket (API address, login pool and client IDs). Those values
 are new after every lab wipe, so the app downloads them at start-up instead of having them compiled in: the
