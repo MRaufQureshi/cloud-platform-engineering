@@ -16,13 +16,13 @@ Terraform builds all of this for you. This guide shows the same thing service by
 - **Connects to:** every EC2, the ECS task, the ALB and the VPC endpoints live inside it.
 - **Console steps:**
   - VPC console > Your VPCs > Create VPC > **VPC only**
-    - Name: `theo-vpc`, IPv4 CIDR: `10.0.0.0/16`
+    - Name: `theo-vpc`, IPv4 CIDR: `10.0.0.0/24`
     - After creating: Actions > Edit VPC settings > tick **Enable DNS hostnames**
   - Subnets > Create subnet (VPC `theo-vpc`), add four:
-    - `theo-public-a`: `us-east-1a`, `10.0.1.0/24`
-    - `theo-public-b`: `us-east-1b`, `10.0.2.0/24`
-    - `theo-private-a`: `us-east-1a`, `10.0.11.0/24`
-    - `theo-private-b`: `us-east-1b`, `10.0.12.0/24`
+    - `theo-public-a`: `us-east-1a`, `10.0.0.0/27`
+    - `theo-public-b`: `us-east-1b`, `10.0.0.32/27`
+    - `theo-private-a`: `us-east-1a`, `10.0.0.64/27`
+    - `theo-private-b`: `us-east-1b`, `10.0.0.96/27`
     - For both public subnets: Actions > Edit subnet settings > **Enable auto-assign public IPv4 address**
   - Internet gateways > Create `theo-igw` > Actions > Attach to VPC > `theo-vpc`
   - Elastic IPs > Allocate Elastic IP address (name `theo-nat-eip`)
@@ -40,7 +40,7 @@ Terraform builds all of this for you. This guide shows the same thing service by
   - `theo-obs-sg`: inbound Custom TCP `3000` from `theo-alb-sg`; Custom TCP `9100` from `theo-obs-sg` (itself; add after saving)
   - `theo-sim-sg`: inbound Custom TCP `9100` and `8000` from `theo-obs-sg`; **All ICMP - IPv4** from `theo-obs-sg`
   - `theo-fargate-sg`: inbound Custom TCP `8000` from `theo-obs-sg`
-  - `theo-vpce-sg`: inbound HTTPS `443` from `10.0.0.0/16`
+  - `theo-vpce-sg`: inbound HTTPS `443` from `10.0.0.0/24`
   - On `theo-alb-sg`, edit **outbound**: remove the default rule and add Custom TCP `3000` to `theo-obs-sg`
 
 ## 3. VPC endpoints
