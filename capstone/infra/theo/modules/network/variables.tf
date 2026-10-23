@@ -15,10 +15,11 @@ variable "my_ip" {
   type        = string
 }
 
+# Sized to fit the project. Each subnet is a /27: 32 addresses
 variable "vpc_cidr" {
-  description = "VPC address range (65,536 addresses)"
+  description = "VPC address range (256 addresses)"
   type        = string
-  default     = "10.0.0.0/16"
+  default     = "10.0.0.0/24"
 }
 
 variable "azs" {
@@ -28,13 +29,13 @@ variable "azs" {
 }
 
 variable "public_subnet_cidrs" {
-  description = "One /24 per AZ for the public subnets"
+  description = "One /27 per AZ for the public subnets"
   type        = list(string)
-  default     = ["10.0.1.0/24", "10.0.2.0/24"]
+  default     = ["10.0.0.0/27", "10.0.0.32/27"]
 }
 
 variable "private_subnet_cidrs" {
-  description = "One /24 per AZ for the private subnets"
+  description = "One /27 per AZ for the private subnets"
   type        = list(string)
-  default     = ["10.0.11.0/24", "10.0.12.0/24"]
+  default     = ["10.0.0.64/27", "10.0.0.96/27"]
 }
